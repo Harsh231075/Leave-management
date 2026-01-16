@@ -1,10 +1,12 @@
 import { Link } from "react-router-dom";
-import { ArrowLeft, Search, Filter, Plus, MoreHorizontal } from "lucide-react";
+import { ArrowLeft, Search, Filter } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import AddEmployeeModal from "@/components/admin/AddEmployeeModal";
 import DataTable from "@/components/ui/DataTable";
 import CardContainer from "@/components/ui/CardContainer";
 import FormSelect from "@/components/ui/FormSelect";
 import { employees } from "@/data/dummyData";
+import EmployeeActions from "@/components/admin/EmployeeActions";
 
 const EmployeeManagement = () => {
   const departmentOptions = [
@@ -17,8 +19,8 @@ const EmployeeManagement = () => {
   ];
 
   const columns = [
-    { 
-      key: "name", 
+    {
+      key: "name",
       header: "Employee",
       render: (item: typeof employees[0]) => (
         <div className="flex items-center gap-3">
@@ -37,8 +39,8 @@ const EmployeeManagement = () => {
     { key: "department", header: "Department" },
     { key: "role", header: "Role" },
     { key: "dateOfJoining", header: "Joined" },
-    { 
-      key: "leaveBalance", 
+    {
+      key: "leaveBalance",
       header: "Leave Balance",
       render: (item: typeof employees[0]) => (
         <span className="font-medium text-primary">{item.leaveBalance} days</span>
@@ -47,10 +49,10 @@ const EmployeeManagement = () => {
     {
       key: "actions",
       header: "",
-      render: () => (
-        <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
-          <MoreHorizontal className="h-4 w-4" />
-        </Button>
+      render: (item: typeof employees[0]) => (
+        <div className="flex items-center">
+          <EmployeeActions employee={item} />
+        </div>
       )
     },
   ];
@@ -60,7 +62,7 @@ const EmployeeManagement = () => {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
         <div className="flex items-center gap-4">
-          <Link 
+          <Link
             to="/admin"
             className="p-2 rounded-lg hover:bg-muted transition-colors"
           >
@@ -71,10 +73,7 @@ const EmployeeManagement = () => {
             <p className="text-muted-foreground mt-1">Manage all employees in your organization</p>
           </div>
         </div>
-        <Button size="sm" className="gradient-primary text-primary-foreground">
-          <Plus className="h-4 w-4 mr-2" />
-          Add Employee
-        </Button>
+        <AddEmployeeModal />
       </div>
 
       {/* Stats */}
@@ -107,7 +106,7 @@ const EmployeeManagement = () => {
       <div className="flex flex-col sm:flex-row gap-4 mb-6">
         <div className="relative flex-1">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-          <input 
+          <input
             type="text"
             placeholder="Search employees..."
             className="w-full pl-10 pr-4 py-2.5 rounded-lg border border-input bg-background text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring"

@@ -9,20 +9,22 @@ interface FormSelectProps {
   required?: boolean;
   className?: string;
   id?: string;
+  onChange?: (value: string) => void;
 }
 
-const FormSelect = ({ 
-  label, 
-  options, 
+const FormSelect = ({
+  label,
+  options,
   placeholder = "Select an option",
   value,
   disabled = false,
   required = false,
+  onChange,
   className,
   id
 }: FormSelectProps) => {
   const selectId = id || label.toLowerCase().replace(/\s+/g, '-');
-  
+
   return (
     <div className={cn("space-y-2", className)}>
       <label htmlFor={selectId} className="block text-sm font-medium text-foreground">
@@ -31,14 +33,15 @@ const FormSelect = ({
       </label>
       <select
         id={selectId}
-        defaultValue={value || ""}
+        value={value || ""}
         disabled={disabled}
+        onChange={(e) => onChange && onChange(e.target.value)}
         className={cn(
-          "w-full px-4 py-2.5 rounded-lg border border-input bg-background text-foreground",
+          "w-full px-4 py-2.5 pr-10 rounded-lg border border-input bg-background text-foreground",
           "focus:outline-none focus:ring-2 focus:ring-ring focus:border-transparent",
           "disabled:bg-muted disabled:cursor-not-allowed disabled:opacity-60",
-          "transition-all duration-200 appearance-none cursor-pointer",
-          "bg-[url('data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2224%22%20height%3D%2224%22%20viewBox%3D%220%200%2024%2024%22%20fill%3D%22none%22%20stroke%3D%22%236b7280%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpolyline%20points%3D%226%209%2012%2015%2018%209%22%3E%3C%2Fpolyline%3E%3C%2Fsvg%3E')]",
+          "transition-all duration-200 appearance-none -webkit-appearance-none -moz-appearance-none cursor-pointer",
+          "bg-[url('data:image/svg+xml;utf8,<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"24\" height=\"24\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><polyline points=\"6 9 12 15 18 9\"></polyline></svg>')]",
           "bg-no-repeat bg-[right_0.75rem_center] bg-[length:1rem]"
         )}
       >
