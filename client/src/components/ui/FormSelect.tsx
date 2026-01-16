@@ -37,8 +37,9 @@ const FormSelect = ({
         disabled={disabled}
         onChange={(e) => onChange && onChange(e.target.value)}
         className={cn(
-          "w-full px-4 py-2.5 pr-10 rounded-lg border border-input bg-background text-foreground",
-          "focus:outline-none focus:ring-2 focus:ring-ring focus:border-transparent",
+          "w-full px-4 py-3 pr-10 rounded-xl border bg-card text-foreground text-sm",
+          "border-border",
+          "focus:outline-none focus:ring-4 focus:ring-primary/20 focus:border-primary",
           "disabled:bg-muted disabled:cursor-not-allowed disabled:opacity-60",
           "transition-all duration-200 appearance-none -webkit-appearance-none -moz-appearance-none cursor-pointer",
           "bg-[url('data:image/svg+xml;utf8,<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"24\" height=\"24\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><polyline points=\"6 9 12 15 18 9\"></polyline></svg>')]",

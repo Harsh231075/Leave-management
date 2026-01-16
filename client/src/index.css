@@ -133,9 +133,11 @@
 
 @layer components {
   .stat-card {
-    @apply bg-card rounded-xl p-6 border border-border;
-    box-shadow: var(--stat-card-shadow);
-    transition: box-shadow 0.2s ease, transform 0.2s ease;
+    @apply rounded-xl p-6 border border-border;
+    background-color: rgba(255, 255, 255, 0.6);
+    -webkit-backdrop-filter: blur(8px);
+    backdrop-filter: blur(8px);
+    transition: transform 0.2s ease;
   }
 
   .stat-card:hover {
@@ -169,8 +171,11 @@
   }
 
   .form-card {
-    @apply bg-card rounded-xl border border-border p-6;
-    box-shadow: var(--stat-card-shadow);
+    @apply rounded-xl border border-border p-6;
+    background-color: rgba(255, 255, 255, 0.6);
+    -webkit-backdrop-filter: blur(8px);
+    backdrop-filter: blur(8px);
+    /* shadow removed */
   }
 
   .nav-container {
@@ -187,8 +192,18 @@
   }
 
   .auth-card {
-    @apply bg-card rounded-2xl border border-border p-8 w-full max-w-md;
-    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.1);
+    @apply rounded-2xl p-6 w-full max-w-xl border;
+    background-color: rgba(255, 255, 255, 0.65);
+    -webkit-backdrop-filter: blur(10px);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(15, 23, 42, 0.06);
+  }
+
+  .dark .stat-card,
+  .dark .form-card,
+  .dark .auth-card {
+    background-color: rgba(17, 24, 39, 0.45);
+    border-color: rgba(255, 255, 255, 0.06);
   }
 }
 
