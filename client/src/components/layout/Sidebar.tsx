@@ -1,10 +1,10 @@
 import { Link, useLocation } from "react-router-dom";
-import { 
-  LayoutDashboard, 
-  FileText, 
-  Clock, 
-  CalendarCheck, 
-  User, 
+import {
+  LayoutDashboard,
+  FileText,
+  Clock,
+  CalendarCheck,
+  User,
   LogOut,
   Users,
   ClipboardList,
@@ -37,23 +37,22 @@ const adminLinks = [
 const Sidebar = ({ role, isOpen = true, onClose }: SidebarProps) => {
   const location = useLocation();
   const links = role === "admin" ? adminLinks : employeeLinks;
-  
+
   return (
     <>
       {/* Mobile Overlay */}
       {isOpen && (
-        <div 
+        <div
           className="fixed inset-0 bg-foreground/20 backdrop-blur-sm z-40 lg:hidden"
           onClick={onClose}
         />
       )}
-      
+
       {/* Sidebar */}
-      <aside 
+      <aside
         className={cn(
-          "fixed left-0 top-0 h-full w-64 bg-sidebar border-r border-sidebar-border z-50",
+          "fixed left-0 top-0 h-screen w-64 bg-sidebar border-r border-sidebar-border z-50",
           "flex flex-col transition-transform duration-300 ease-in-out",
-          "lg:translate-x-0 lg:static lg:z-auto",
           isOpen ? "translate-x-0" : "-translate-x-full"
         )}
       >
@@ -63,16 +62,18 @@ const Sidebar = ({ role, isOpen = true, onClose }: SidebarProps) => {
             <div className="h-9 w-9 rounded-xl gradient-primary flex items-center justify-center">
               <Building2 className="h-5 w-5 text-primary-foreground" />
             </div>
-            <span className="text-lg font-bold text-foreground">HR Portal</span>
+            <span className="text-lg font-bold text-foreground">
+              {role === "admin" ? "HR Dashboard" : "Employee"}
+            </span>
           </Link>
-          <button 
+          <button
             className="lg:hidden p-1 rounded hover:bg-muted transition-colors"
             onClick={onClose}
           >
             <X className="h-5 w-5 text-muted-foreground" />
           </button>
         </div>
-        
+
         {/* Navigation */}
         <nav className="flex-1 px-4 py-6 space-y-1 overflow-y-auto">
           {links.map((link) => {
@@ -90,7 +91,7 @@ const Sidebar = ({ role, isOpen = true, onClose }: SidebarProps) => {
             );
           })}
         </nav>
-        
+
         {/* Footer */}
         <div className="p-4 border-t border-sidebar-border">
           <Link
