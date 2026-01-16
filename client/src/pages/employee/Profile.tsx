@@ -16,7 +16,7 @@ const Profile = () => {
     <div className="page-container animate-fade-up">
       {/* Header */}
       <div className="flex items-center gap-4 mb-8">
-        <Link 
+        <Link
           to="/employee"
           className="p-2 rounded-lg hover:bg-muted transition-colors"
         >
@@ -28,7 +28,7 @@ const Profile = () => {
         </div>
       </div>
 
-      <div className="max-w-2xl">
+      <div className="w-full">
         <CardContainer>
           {/* Avatar and Name */}
           <div className="flex flex-col sm:flex-row items-center gap-6 pb-6 border-b border-border">
@@ -51,7 +51,7 @@ const Profile = () => {
           {/* Profile Fields */}
           <div className="pt-6 space-y-4">
             {profileFields.map((field) => (
-              <div 
+              <div
                 key={field.label}
                 className="flex items-center gap-4 p-4 rounded-lg bg-muted/30 hover:bg-muted/50 transition-colors"
               >

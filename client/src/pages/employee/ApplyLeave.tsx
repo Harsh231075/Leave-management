@@ -17,7 +17,7 @@ const ApplyLeave = () => {
     <div className="page-container animate-fade-up">
       {/* Header */}
       <div className="flex items-center gap-4 mb-8">
-        <Link 
+        <Link
           to="/employee"
           className="p-2 rounded-lg hover:bg-muted transition-colors"
         >
@@ -29,7 +29,7 @@ const ApplyLeave = () => {
         </div>
       </div>
 
-      <div className="max-w-2xl">
+      <div className="w-full">
         <CardContainer>
           <div className="space-y-6">
             {/* Leave Type */}

@@ -12,8 +12,8 @@ const Attendance = () => {
 
   const columns = [
     { key: "date", header: "Date" },
-    { 
-      key: "status", 
+    {
+      key: "status",
       header: "Status",
       render: (item: typeof employeeAttendance[0]) => (
         <StatusBadge status={item.status as "Present" | "Absent"} />
@@ -28,7 +28,7 @@ const Attendance = () => {
     <div className="page-container animate-fade-up">
       {/* Header */}
       <div className="flex items-center gap-4 mb-8">
-        <Link 
+        <Link
           to="/employee"
           className="p-2 rounded-lg hover:bg-muted transition-colors"
         >
@@ -41,10 +41,10 @@ const Attendance = () => {
       </div>
 
       {/* Mark Attendance Card */}
-      <CardContainer 
-        title="Mark Today's Attendance" 
+      <CardContainer
+        title="Mark Today's Attendance"
         description={`Date: ${today}`}
-        className="mb-8 max-w-2xl"
+        className="mb-8 w-full"
       >
         <div className="flex flex-col sm:flex-row items-center justify-between gap-6">
           <div className="flex items-center gap-4">
@@ -57,15 +57,15 @@ const Attendance = () => {
             </div>
           </div>
           <div className="flex gap-3">
-            <Button 
-              size="lg" 
+            <Button
+              size="lg"
               className="bg-success hover:bg-success/90 text-success-foreground"
             >
               <CheckCircle className="h-5 w-5 mr-2" />
               Present
             </Button>
-            <Button 
-              size="lg" 
+            <Button
+              size="lg"
               variant="outline"
               className="border-destructive text-destructive hover:bg-destructive/10"
             >
@@ -77,7 +77,7 @@ const Attendance = () => {
       </CardContainer>
 
       {/* Stats */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-8 max-w-2xl">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-8 w-full">
         <div className="p-4 rounded-xl bg-success/10 border border-success/20">
           <div className="flex items-center gap-3">
             <CheckCircle className="h-5 w-5 text-success" />
@@ -99,10 +99,10 @@ const Attendance = () => {
       </div>
 
       {/* History Table */}
-      <CardContainer 
-        title="Attendance History" 
+      <CardContainer
+        title="Attendance History"
         description="Your attendance records"
-        className="max-w-2xl"
+        className="w-full"
       >
         <DataTable columns={columns} data={employeeAttendance} />
       </CardContainer>
