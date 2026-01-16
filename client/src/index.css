@@ -121,7 +121,12 @@
     font-family: 'Inter', sans-serif;
   }
 
-  h1, h2, h3, h4, h5, h6 {
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
     @apply font-semibold tracking-tight;
   }
 }
@@ -174,7 +179,7 @@
   }
 
   .page-container {
-    @apply p-6 lg:p-8 max-w-7xl mx-auto;
+    @apply p-6 lg:p-8 w-full max-w-none;
   }
 
   .section-title {
@@ -197,6 +202,7 @@
       opacity: 0;
       transform: translateY(10px);
     }
+
     to {
       opacity: 1;
       transform: translateY(0);
