@@ -1,4 +1,5 @@
 import { Link } from "react-router-dom";
+import { useState } from "react";
 import { ArrowLeft, Filter, Download } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import DataTable from "@/components/ui/DataTable";
@@ -15,19 +16,23 @@ const LeaveRequests = () => {
     { value: "rejected", label: "Rejected" },
   ];
 
+  const [selectedStatus, setSelectedStatus] = useState("all");
+
+  const filtered = leaveRequests.filter(l => selectedStatus === "all" ? true : l.status.toLowerCase() === selectedStatus.toLowerCase());
+
   const columns = [
     { key: "employeeName", header: "Employee Name" },
     { key: "leaveType", header: "Leave Type" },
-    { 
-      key: "dateRange", 
+    {
+      key: "dateRange",
       header: "Date Range",
       render: (item: typeof leaveRequests[0]) => (
         <span>{item.startDate} — {item.endDate}</span>
       )
     },
     { key: "totalDays", header: "Total Days" },
-    { 
-      key: "reason", 
+    {
+      key: "reason",
       header: "Reason",
       render: (item: typeof leaveRequests[0]) => (
         <span className="max-w-[200px] truncate block" title={item.reason}>
@@ -35,8 +40,8 @@ const LeaveRequests = () => {
         </span>
       )
     },
-    { 
-      key: "status", 
+    {
+      key: "status",
       header: "Status",
       render: (item: typeof leaveRequests[0]) => (
         <StatusBadge status={item.status as "Approved" | "Pending" | "Rejected"} />
@@ -62,16 +67,16 @@ const LeaveRequests = () => {
     },
   ];
 
-  const pendingCount = leaveRequests.filter(l => l.status === "Pending").length;
-  const approvedCount = leaveRequests.filter(l => l.status === "Approved").length;
-  const rejectedCount = leaveRequests.filter(l => l.status === "Rejected").length;
+  const pendingCount = filtered.filter(l => l.status === "Pending").length;
+  const approvedCount = filtered.filter(l => l.status === "Approved").length;
+  const rejectedCount = filtered.filter(l => l.status === "Rejected").length;
 
   return (
     <div className="page-container animate-fade-up">
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
         <div className="flex items-center gap-4">
-          <Link 
+          <Link
             to="/admin"
             className="p-2 rounded-lg hover:bg-muted transition-colors"
           >
@@ -111,6 +116,8 @@ const LeaveRequests = () => {
             label=""
             options={statusOptions}
             placeholder="Filter by status"
+            value={selectedStatus}
+            onChange={(v) => setSelectedStatus(v)}
           />
         </div>
         <Button variant="outline" className="sm:self-end">
@@ -121,7 +128,7 @@ const LeaveRequests = () => {
 
       {/* Table */}
       <CardContainer>
-        <DataTable columns={columns} data={leaveRequests} />
+        <DataTable columns={columns} data={filtered} />
       </CardContainer>
     </div>
   );

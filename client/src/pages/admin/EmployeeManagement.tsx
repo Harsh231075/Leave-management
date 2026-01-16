@@ -1,4 +1,5 @@
 import { Link } from "react-router-dom";
+import { useState } from "react";
 import { ArrowLeft, Search, Filter } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import AddEmployeeModal from "@/components/admin/AddEmployeeModal";
@@ -17,6 +18,9 @@ const EmployeeManagement = () => {
     { value: "hr", label: "Human Resources" },
     { value: "design", label: "Design" },
   ];
+
+  const [searchTerm, setSearchTerm] = useState("");
+  const [selectedDept, setSelectedDept] = useState("all");
 
   const columns = [
     {
@@ -108,6 +112,8 @@ const EmployeeManagement = () => {
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <input
             type="text"
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
             placeholder="Search employees..."
             className="w-full pl-10 pr-4 py-2.5 rounded-lg border border-input bg-background text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring"
           />
@@ -117,6 +123,8 @@ const EmployeeManagement = () => {
             label=""
             options={departmentOptions}
             placeholder="Filter by department"
+            value={selectedDept}
+            onChange={(v) => setSelectedDept(v)}
           />
         </div>
         <Button variant="outline" className="sm:self-end">
@@ -127,7 +135,15 @@ const EmployeeManagement = () => {
 
       {/* Table */}
       <CardContainer>
-        <DataTable columns={columns} data={employees} />
+        <DataTable
+          columns={columns}
+          data={employees.filter((e) => {
+            const matchesDept = selectedDept === "all" || e.department.toLowerCase() === selectedDept.toLowerCase();
+            const q = searchTerm.trim().toLowerCase();
+            const matchesSearch = !q || e.name.toLowerCase().includes(q) || e.email.toLowerCase().includes(q);
+            return matchesDept && matchesSearch;
+          })}
+        />
       </CardContainer>
     </div>
   );

@@ -1,3 +1,5 @@
+import { useState } from "react";
+
 import { Link } from "react-router-dom";
 import { ArrowLeft, Filter, Download, Calendar } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -5,8 +7,9 @@ import DataTable from "@/components/ui/DataTable";
 import StatusBadge from "@/components/ui/StatusBadge";
 import CardContainer from "@/components/ui/CardContainer";
 import FormSelect from "@/components/ui/FormSelect";
-import FormInput from "@/components/ui/FormInput";
+//import FormInput from "@/components/ui/FormInput";
 import { attendanceRecords, employees } from "@/data/dummyData";
+//import { i } from "node_modules/vite/dist/node/types.d-aGj9QkWt";
 
 const AttendanceOverview = () => {
   const employeeOptions = [
@@ -17,8 +20,8 @@ const AttendanceOverview = () => {
   const columns = [
     { key: "employeeName", header: "Employee Name" },
     { key: "date", header: "Date" },
-    { 
-      key: "status", 
+    {
+      key: "status",
       header: "Status",
       render: (item: typeof attendanceRecords[0]) => (
         <StatusBadge status={item.status as "Present" | "Absent"} />
@@ -26,16 +29,26 @@ const AttendanceOverview = () => {
     },
   ];
 
-  const presentCount = attendanceRecords.filter(a => a.status === "Present").length;
-  const absentCount = attendanceRecords.filter(a => a.status === "Absent").length;
-  const attendanceRate = Math.round((presentCount / attendanceRecords.length) * 100);
+  const [selectedEmployee, setSelectedEmployee] = useState("all");
+  const [startDate, setStartDate] = useState("");
+  const [endDate, setEndDate] = useState("");
+  const [filteredRecords, setFilteredRecords] = useState(attendanceRecords);
+
+  const computeStats = (records: typeof attendanceRecords) => {
+    const presentCount = records.filter(a => a.status === "Present").length;
+    const absentCount = records.filter(a => a.status === "Absent").length;
+    const attendanceRate = records.length ? Math.round((presentCount / records.length) * 100) : 0;
+    return { presentCount, absentCount, attendanceRate };
+  };
+
+  const { presentCount, absentCount, attendanceRate } = computeStats(filteredRecords);
 
   return (
     <div className="page-container animate-fade-up">
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
         <div className="flex items-center gap-4">
-          <Link 
+          <Link
             to="/admin"
             className="p-2 rounded-lg hover:bg-muted transition-colors"
           >
@@ -79,25 +92,38 @@ const AttendanceOverview = () => {
             label="Employee"
             options={employeeOptions}
             placeholder="Select employee"
+            value={selectedEmployee}
+            onChange={(v) => setSelectedEmployee(v)}
           />
-          <FormInput
-            label="Start Date"
-            type="date"
-          />
-          <FormInput
-            label="End Date"
-            type="date"
-          />
+          <div>
+            <label className="block text-sm font-medium text-foreground">Start Date</label>
+            <input type="date" value={startDate} onChange={(e) => setStartDate(e.target.value)} className="w-full px-4 py-2.5 rounded-lg border border-input bg-background text-foreground" />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-foreground">End Date</label>
+            <input type="date" value={endDate} onChange={(e) => setEndDate(e.target.value)} className="w-full px-4 py-2.5 rounded-lg border border-input bg-background text-foreground" />
+          </div>
         </div>
         <div className="flex justify-end mt-4">
-          <Button size="sm" className="gradient-primary text-primary-foreground">
+          <Button size="sm" className="gradient-primary text-primary-foreground" onClick={() => {
+            const start = startDate ? new Date(startDate) : null;
+            const end = endDate ? new Date(endDate) : null;
+            const filtered = attendanceRecords.filter(r => {
+              if (selectedEmployee !== "all" && r.employeeId.toString() !== selectedEmployee) return false;
+              const d = new Date(r.date);
+              if (start && d < start) return false;
+              if (end && d > end) return false;
+              return true;
+            });
+            setFilteredRecords(filtered);
+          }}>
             Apply Filters
           </Button>
         </div>
       </div>
 
       {/* Table */}
-      <CardContainer 
+      <CardContainer
         title="Attendance Records"
         headerAction={
           <div className="flex items-center gap-2 text-sm text-muted-foreground">
@@ -106,7 +132,7 @@ const AttendanceOverview = () => {
           </div>
         }
       >
-        <DataTable columns={columns} data={attendanceRecords} />
+        <DataTable columns={columns} data={filteredRecords} />
       </CardContainer>
     </div>
   );
