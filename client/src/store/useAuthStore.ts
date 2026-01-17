@@ -2,6 +2,7 @@ import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { User, LoginCredentials, RegisterCredentials } from '../types';
 import { login, register } from '../services/authService';
+import { getMyProfile } from '../services/employeeService';
 import api from '../services/api';
 
 interface AuthState {
@@ -28,13 +29,21 @@ export const useAuthStore = create<AuthState>()(
                 set({ isLoading: true, error: null });
                 try {
                     const response = await login(credentials);
+                    // store token first to enable /employees/me
+                    localStorage.setItem('token', response.token);
+                    let mergedUser: User = response.user;
+                    try {
+                        const profile = await getMyProfile();
+                        mergedUser = { ...response.user, ...profile } as User;
+                    } catch (e) {
+                        // ignore profile fetch errors; keep base user
+                    }
                     set({
-                        user: response.user,
+                        user: mergedUser,
                         token: response.token,
                         isAuthenticated: true,
                         isLoading: false,
                     });
-                    localStorage.setItem('token', response.token);
                 } catch (error: any) {
                     set({
                         error: error.response?.data?.error || 'Login failed',
@@ -46,14 +55,29 @@ export const useAuthStore = create<AuthState>()(
             register: async (credentials) => {
                 set({ isLoading: true, error: null });
                 try {
-                    const response = await register(credentials);
+                    const regResponse = await register(credentials);
+                    // If register doesn't return token, login to obtain token
+                    let authUser: User | null = (regResponse as any)?.user ?? null;
+                    let token: string | null = (regResponse as any)?.token ?? null;
+                    if (!token) {
+                        const loginResponse = await login({ email: credentials.email, password: credentials.password });
+                        token = loginResponse.token;
+                        authUser = loginResponse.user;
+                    }
+                    if (token) localStorage.setItem('token', token);
+                    let mergedUser: User | null = authUser;
+                    try {
+                        if (token) {
+                            const profile = await getMyProfile();
+                            mergedUser = { ...(authUser as User), ...profile } as User;
+                        }
+                    } catch (e) { }
                     set({
-                        user: response.user,
-                        token: response.token,
-                        isAuthenticated: true,
+                        user: mergedUser,
+                        token: token,
+                        isAuthenticated: !!token,
                         isLoading: false,
                     });
-                    localStorage.setItem('token', response.token);
                 } catch (error: any) {
                     set({
                         error: error.response?.data?.error || 'Registration failed',

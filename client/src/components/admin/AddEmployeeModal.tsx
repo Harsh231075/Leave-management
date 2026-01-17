@@ -142,6 +142,14 @@ const AddEmployeeModal = () => {
               value={String(form.leaveBalance)}
               onChange={handleChange}
             />
+            <FormInput
+              label="Default Password"
+              name="defaultPassword"
+              type="text"
+              value={"Welcome@123"}
+              onChange={() => { }}
+              readOnly
+            />
           </div>
 
           <DialogFooter>

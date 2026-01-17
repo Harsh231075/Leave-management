@@ -43,7 +43,7 @@ async function seed() {
   for (let i = 0; i < names.length; i++) {
     const name = names[i];
     const email = `${name.split(" ").join(".").toLowerCase()}@example.com`;
-    const passwordRaw = process.env.JWT_SECRET || "password123";
+    const passwordRaw = process.env.DEFAULT_EMPLOYEE_PASSWORD || process.env.JWT_SECRET || "password123";
     const passwordHash = await bcrypt.hash(passwordRaw, 10);
 
     const userDoc = await UserModel.create({
@@ -63,6 +63,7 @@ async function seed() {
       leaveBalance: 12 - (i % 5),
       department: departments[i % departments.length],
       avatar: null,
+      userId: (userDoc as any)._id,
     } as any);
 
     employees.push(emp.toObject());
@@ -71,7 +72,7 @@ async function seed() {
   // create 1 HR user (Admin)
   const hrName = "Priya Reddy";
   const hrEmail = "priya.reddy@example.com";
-  const hrPasswordRaw = process.env.JWT_SECRET || "hrpassword";
+  const hrPasswordRaw = process.env.DEFAULT_EMPLOYEE_PASSWORD || process.env.JWT_SECRET || "hrpassword";
   const hrHash = await bcrypt.hash(hrPasswordRaw, 10);
   const hrUser = await UserModel.create({ name: hrName, email: hrEmail, password: hrHash, role: "Admin" } as any);
   const hrEmp = await EmployeeModel.create({
@@ -82,6 +83,7 @@ async function seed() {
     leaveBalance: 30,
     department: "HR",
     avatar: null,
+    userId: (hrUser as any)._id,
   } as any);
 
   users.push(hrUser.toObject());

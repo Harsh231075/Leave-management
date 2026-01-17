@@ -1,5 +1,5 @@
 import express from "express";
-import { createEmployee, listEmployees, getEmployeeById, updateEmployee, deleteEmployee } from "../controllers/employee.controller";
+import { createEmployee, listEmployees, getEmployeeById, updateEmployee, deleteEmployee, getEmployeeByEmail, getEmployeeByUserId } from "../controllers/employee.controller";
 import { EmployeeCreateSchema } from "../validation/schemas";
 import validate from "../middleware/validate";
 import requireAuth from "../middleware/auth";
@@ -20,6 +20,19 @@ router.get("/", requireAuth, requireRole("Admin"), async (_req, res) => {
   try {
     const docs = await listEmployees();
     return res.json(docs);
+  } catch (err: any) {
+    return res.status(500).json({ error: err.message || err });
+  }
+});
+
+
+router.get("/me", requireAuth, async (req, res) => {
+  try {
+    const userId = (req as any).user?.id;
+    if (!userId) return res.status(400).json({ error: "Missing user id in token" });
+    const doc = await getEmployeeByUserId(userId);
+    if (!doc) return res.status(404).json({ error: "Employee profile not found" });
+    return res.json(doc);
   } catch (err: any) {
     return res.status(500).json({ error: err.message || err });
   }

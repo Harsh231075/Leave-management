@@ -47,6 +47,11 @@ export interface RegisterCredentials {
     email: string;
     password: string;
     role?: string;
+    // Optional employee profile fields when registering as Employee
+    department?: string;
+    dateOfJoining?: string;
+    leaveBalance?: number;
+    avatar?: string | null;
 }
 
 export interface CreateEmployeeInput {

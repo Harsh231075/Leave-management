@@ -7,6 +7,7 @@ const EmployeeSchema = new Schema<Omit<IEmployee, 'id'>>(
   {
     name: { type: String, required: true },
     email: { type: String, required: true, unique: true, lowercase: true, trim: true },
+    userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: false },
     role: { type: String, required: true, default: "Employee" },
     dateOfJoining: { type: Date },
     leaveBalance: { type: Number, default: 0 },

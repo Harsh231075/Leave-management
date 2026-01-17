@@ -1,4 +1,5 @@
 import UserModel from "../models/Schemas/User.model";
+import EmployeeModel from "../models/Schemas/Employee.model";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import { AuthRegisterInput, AuthLoginInput } from "../validation/schemas";
@@ -17,6 +18,30 @@ export async function registerUser(input: AuthRegisterInput) {
     password: hashed,
     role: input.role || "Employee",
   } as any);
+
+  if ((doc as any).role === "Employee") {
+    const userId = (doc as any)._id;
+    let existingEmp = await EmployeeModel.findOne({ userId: userId });
+    if (!existingEmp) existingEmp = await EmployeeModel.findOne({ email: input.email });
+
+    if (existingEmp) {
+      if (!(existingEmp as any).userId) {
+        (existingEmp as any).userId = userId;
+        await existingEmp.save();
+      }
+    } else {
+      await EmployeeModel.create({
+        name: input.name,
+        email: input.email,
+        userId,
+        role: "Employee",
+        dateOfJoining: input.dateOfJoining || undefined,
+        leaveBalance: input.leaveBalance ?? 0,
+        department: input.department || "",
+        avatar: input.avatar ?? null,
+      } as any);
+    }
+  }
 
   const user = doc.toObject();
   delete (user as any).password;

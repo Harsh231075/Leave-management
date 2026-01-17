@@ -19,6 +19,8 @@ const Signup = () => {
     dateOfJoining: "",
     department: "",
     role: "Employee", // Default role
+    leaveBalance: 0,
+    avatar: "",
   });
 
   const departmentOptions = [
@@ -37,7 +39,11 @@ const Signup = () => {
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
+    if (name === "leaveBalance") {
+      setFormData((prev) => ({ ...prev, [name]: Number(value) }));
+    } else {
+      setFormData((prev) => ({ ...prev, [name]: value }));
+    }
   };
 
   const handleSelectChange = (name: string, value: string) => {
@@ -47,7 +53,21 @@ const Signup = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      await register(formData);
+      // prepare payload: include employee-only fields only when role is Employee
+      const basePayload: any = {
+        name: formData.name,
+        email: formData.email,
+        password: formData.password,
+        role: formData.role,
+      };
+      if (formData.role === "Employee") {
+        basePayload.department = formData.department;
+        basePayload.dateOfJoining = formData.dateOfJoining || undefined;
+        basePayload.leaveBalance = typeof formData.leaveBalance === 'number' ? formData.leaveBalance : Number(formData.leaveBalance || 0);
+        basePayload.avatar = formData.avatar || null;
+      }
+
+      await register(basePayload);
       toast({
         title: "Account created!",
         description: "Welcome to the portal.",
@@ -107,24 +127,6 @@ const Signup = () => {
             required
           />
 
-          <FormInput
-            label="Date of Joining"
-            name="dateOfJoining"
-            type="date"
-            value={formData.dateOfJoining}
-            onChange={handleChange}
-          // required - backend might strict it, but schema says optional? checked schema: dateOfJoining is optional
-          />
-
-          <FormSelect
-            label="Department"
-            options={departmentOptions}
-            placeholder="Select your department"
-            value={formData.department}
-            onChange={(val) => handleSelectChange("department", val)}
-            required
-          />
-
           <FormSelect
             label="Role"
             options={roleOptions}
@@ -133,6 +135,45 @@ const Signup = () => {
             onChange={(val) => handleSelectChange("role", val)}
             required
           />
+
+          {/* Employee-only fields shown when role === Employee */}
+          {formData.role === "Employee" && (
+            <>
+              <FormInput
+                label="Date of Joining"
+                name="dateOfJoining"
+                type="date"
+                value={formData.dateOfJoining}
+                onChange={handleChange}
+              />
+
+              <FormSelect
+                label="Department"
+                options={departmentOptions}
+                placeholder="Select your department"
+                value={formData.department}
+                onChange={(val) => handleSelectChange("department", val)}
+                required
+              />
+
+              <FormInput
+                label="Leave Balance"
+                name="leaveBalance"
+                type="number"
+                value={String((formData as any).leaveBalance)}
+                onChange={handleChange}
+              />
+
+              <FormInput
+                label="Avatar URL"
+                name="avatar"
+                type="text"
+                placeholder="https://..."
+                value={formData.avatar}
+                onChange={handleChange}
+              />
+            </>
+          )}
 
           <div className="pt-2">
             <label className="flex items-start gap-2 cursor-pointer">

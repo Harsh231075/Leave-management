@@ -24,3 +24,8 @@ export const updateEmployee = async (id: string, data: Partial<CreateEmployeeInp
 export const deleteEmployee = async (id: string): Promise<void> => {
     await api.delete(`/employees/${id}`);
 };
+
+export const getMyProfile = async (): Promise<User> => {
+    const response = await api.get<User>('/employees/me');
+    return response.data;
+};
