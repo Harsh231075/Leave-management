@@ -60,32 +60,37 @@ Notes:
 - Routes are mounted under `/api` (e.g. `/api/auth/login`).
 - Auth uses JWT stored in `Authorization: Bearer <token>`.
 - The project includes `scripts/seed.ts` to populate demo users/employees/leaves/attendance.
-- Screenshots used in README should be stored under `doc/assets/screenshots/server/`.
 
 ---
 
-## Adding screenshots for README / GitHub
+## Database Models
 
-1. Create the asset folders:
+The backend uses MongoDB via Mongoose. Core data models and relationships are summarized below:
 
-```bash
-mkdir -p doc/assets/screenshots/client
-mkdir -p doc/assets/screenshots/server
-```
+- `User` (auth):
+  - Fields: `email`, `passwordHash`, `role` (e.g., `Admin` | `Employee`), `createdAt`, `updatedAt`.
+  - Purpose: authentication and role-based access. A `User` may be associated with an `Employee` record (for employee accounts).
 
-2. Take screenshots (PNG preferred) and save them in the appropriate folder with short filenames, e.g.:
+- `Employee`:
+  - Fields: `firstName`, `lastName`, `employeeId` (string or numeric identifier), `email`, `phone`, `department`, `designation`, `managerId` (ObjectId reference to another `Employee`), `joinedAt`, `status`.
+  - Purpose: stores HR-specific employee profile data. An `Employee` can have many `LeaveRequest` and `AttendanceRecord` documents.
 
-- `doc/assets/screenshots/client/landing.png`
-- `doc/assets/screenshots/client/admin-dashboard.png`
-- `doc/assets/screenshots/server/api-docs.png`
+- `LeaveRequest`:
+  - Fields: `employeeId` (ObjectId ref -> `Employee`), `startDate`, `endDate`, `type` (e.g., `Casual`, `Sick`), `status` (e.g., `Pending`, `Approved`, `Rejected`), `reason`, `createdBy` (User/Employee), `approvedBy` (User/Employee), `createdAt`.
+  - Purpose: tracks leave applications; references the `Employee` who requested leave and the approver when applicable.
 
-3. Reference images in `README.md` using relative links:
+- `AttendanceRecord`:
+  - Fields: `employeeId` (ObjectId ref -> `Employee`), `date`, `checkIn`, `checkOut`, `status` (e.g., `Present`, `Absent`, `Half-day`), `notes`.
+  - Purpose: per-day attendance entries for reporting and calculation of totals.
 
-```markdown
-![Landing](/doc/assets/screenshots/client/landing.png)
-```
+Relationships & notes:
 
-4. Commit the screenshot files to the repository (keep sizes reasonable — compress if needed).
+- One-to-one / association: a `User` for authentication can be linked to an `Employee` document (useful when employees log in).
+- One-to-many: an `Employee` has many `LeaveRequest` and `AttendanceRecord` documents. Implement via `employeeId` ObjectId references.
+- Manager relation: `Employee.managerId` is an optional ObjectId referencing another `Employee` to model reporting lines.
+- Referential integrity: use Mongoose pre-delete hooks or application-level checks to avoid orphaned records when removing employees (e.g., soft-delete employee and keep historical leave/attendance records).
+- Indexing: add indexes on commonly queried fields: `employeeId`, `email`, `startDate`/`date`, and `status` for faster lookups.
 
----
+
+
 

@@ -54,6 +54,15 @@
 - Added supporting notes and references in the `doc` directory for clarity and future maintenance.
 - Ensured documentation accurately reflects the real architecture and deployment setup.
 
+# Implementation Time
+
+This file records the total implementation time for the project scope completed during the current development effort.
+
+- Total elapsed implementation time: **12 hours** (approx.).
+
+Recorded: 2026-01-17
+
+
 ## Notes on AI Usage
 
 - AI tools (ChatGPT, Lovable) were used strictly as **assistive tools** for ideation, examples, and productivity.
