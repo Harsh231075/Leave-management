@@ -6,6 +6,8 @@ import DataTable from "@/components/ui/DataTable";
 import StatusBadge from "@/components/ui/StatusBadge";
 import CardContainer from "@/components/ui/CardContainer";
 import FormSelect from "@/components/ui/FormSelect";
+import FormInput from "@/components/ui/FormInput";
+import { useToast } from "@/hooks/use-toast";
 import { useLeaveStore } from "@/store/useLeaveStore";
 import { format, parseISO } from "date-fns";
 import { LeaveRequest } from "@/types";
@@ -15,12 +17,34 @@ const LeaveHistory = () => {
 
   const [showFilters, setShowFilters] = useState(false);
   const [statusFilter, setStatusFilter] = useState("all");
+  const [startFilter, setStartFilter] = useState("");
+  const [endFilter, setEndFilter] = useState("");
+  const { toast } = useToast();
 
   useEffect(() => {
     fetchMyLeaves();
   }, [fetchMyLeaves]);
 
-  const filteredLeaves = myLeaves.filter(l => statusFilter === "all" ? true : l.status === statusFilter);
+  const filteredLeaves = myLeaves
+    .filter(l => statusFilter === "all" ? true : l.status === statusFilter)
+    .filter((l) => {
+      if (!startFilter && !endFilter) return true;
+      try {
+        const ls = parseISO(l.startDate as string);
+        const le = parseISO(l.endDate as string);
+        if (startFilter) {
+          const sf = parseISO(startFilter);
+          if (le < sf) return false; // leave ends before filter start
+        }
+        if (endFilter) {
+          const ef = parseISO(endFilter);
+          if (ls > ef) return false; // leave starts after filter end
+        }
+        return true;
+      } catch (e) {
+        return true;
+      }
+    });
 
   const columns = [
     { key: "leaveType", header: "Leave Type" },
@@ -104,6 +128,35 @@ const LeaveHistory = () => {
               value={statusFilter}
               onChange={(v) => setStatusFilter(v)}
             />
+            <FormInput
+              label="Start Date"
+              name="filterStart"
+              type="date"
+              value={startFilter}
+              onChange={(e) => setStartFilter(e.target.value)}
+            />
+            <FormInput
+              label="End Date"
+              name="filterEnd"
+              type="date"
+              value={endFilter}
+              onChange={(e) => setEndFilter(e.target.value)}
+            />
+          </div>
+          <div className="flex items-center gap-2 mt-3">
+            <Button size="sm" onClick={() => {
+              if (startFilter && endFilter) {
+                const sf = parseISO(startFilter);
+                const ef = parseISO(endFilter);
+                if (ef < sf) {
+                  toast({ variant: 'destructive', title: 'Invalid range', description: 'End date must be on or after start date' });
+                  return;
+                }
+              }
+              // trigger re-render by setting state (filters already set)
+              setShowFilters(false);
+            }}>Apply</Button>
+            <Button size="sm" variant="outline" onClick={() => { setStartFilter(''); setEndFilter(''); setStatusFilter('all'); }}>Reset</Button>
           </div>
         </div>
       )}
