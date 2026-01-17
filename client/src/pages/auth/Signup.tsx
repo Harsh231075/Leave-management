@@ -52,13 +52,8 @@ const Signup = () => {
         title: "Account created!",
         description: "Welcome to the portal.",
       });
-      // Navigate based on role
-      const user = useAuthStore.getState().user;
-      if (user?.role === "Admin") {
-        navigate("/admin");
-      } else {
-        navigate("/employee");
-      }
+      // After registration redirect user to login
+      navigate("/login");
     } catch (error: any) {
       toast({
         variant: "destructive",

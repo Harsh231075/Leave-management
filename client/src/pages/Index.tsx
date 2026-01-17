@@ -105,48 +105,7 @@ const Index = () => {
               A comprehensive HR solution to manage employee leaves, track attendance,
               and streamline administrative tasks with ease.
             </p>
-            <div className="mt-12 flex flex-col sm:flex-row items-center justify-center gap-4">
-              <Button
-                size="lg"
-                className="bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 text-primary-foreground px-8 shadow-xl shadow-primary/30 hover:shadow-primary/50 transition-all duration-300 hover:scale-105"
-                onClick={() => {
-                  if (!isAuthenticated) {
-                    toast({ title: "Please sign in", description: "You must be signed in to access the Employee Portal." });
-                    navigate("/login");
-                    return;
-                  }
-                  if ((user?.role || "").toLowerCase() !== "employee") {
-                    toast({ title: "Access denied", description: "Your account does not have Employee access." });
-                    return;
-                  }
-                  navigate("/employee");
-                }}
-              >
-                Employee Portal
-                <ChevronRight className="h-5 w-5 ml-2" />
-              </Button>
-
-              <Button
-                size="lg"
-                variant="outline"
-                className="px-8 border-2 hover:bg-primary/5 hover:border-primary/50 transition-all duration-300 hover:scale-105"
-                onClick={() => {
-                  if (!isAuthenticated) {
-                    toast({ title: "Please sign in", description: "You must be signed in to access the Admin Portal." });
-                    navigate("/login");
-                    return;
-                  }
-                  if ((user?.role || "").toLowerCase() !== "admin") {
-                    toast({ title: "Access denied", description: "Your account does not have Admin access." });
-                    return;
-                  }
-                  navigate("/admin");
-                }}
-              >
-                Admin Portal
-                <ChevronRight className="h-5 w-5 ml-2" />
-              </Button>
-            </div>
+            {/* Portal buttons removed per request */}
 
             {/* Stats Section */}
             <div className="mt-20 grid grid-cols-1 sm:grid-cols-3 gap-6 max-w-4xl mx-auto">
