@@ -1,6 +1,6 @@
 import { Link } from "react-router-dom";
 import { useState, useEffect } from "react";
-import { ArrowLeft, Search, Filter, Loader2 } from "lucide-react";
+import { ArrowLeft, Search, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import AddEmployeeModal from "@/components/admin/AddEmployeeModal";
 import DataTable from "@/components/ui/DataTable";
@@ -146,10 +146,7 @@ const EmployeeManagement = () => {
             onChange={(v) => setSelectedDept(v)}
           />
         </div>
-        <Button variant="outline" className="sm:self-end">
-          <Filter className="h-4 w-4 mr-2" />
-          More Filters
-        </Button>
+        {/* More Filters removed per cleanup request */}
       </div>
 
       {/* Table */}

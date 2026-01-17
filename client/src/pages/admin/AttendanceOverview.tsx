@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
-import { ArrowLeft, Filter, Download, Calendar, Loader2 } from "lucide-react";
+import { ArrowLeft, Filter, Calendar, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import DataTable from "@/components/ui/DataTable";
 import StatusBadge from "@/components/ui/StatusBadge";
@@ -92,10 +92,7 @@ const AttendanceOverview = () => {
             <p className="text-muted-foreground mt-1">Monitor employee attendance records</p>
           </div>
         </div>
-        <Button variant="outline" size="sm">
-          <Download className="h-4 w-4 mr-2" />
-          Export Report
-        </Button>
+        {/* Export Report removed per cleanup request */}
       </div>
 
       {/* Summary Cards */}

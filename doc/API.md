@@ -60,6 +60,3 @@ Auth tokens are issued by `POST /api/auth/login` and include `{ id, email, role 
 - `employeeId` in `LeaveRequest` and `Attendance` is stored as an ObjectId referencing `Employee`.
 - Use the JWT from `/auth/login` in the `Authorization` header for protected endpoints.
 
-If you want example cURL commands or an OpenAPI spec, tell me which endpoints you'd like examples for.
-- Auth: required (Admin)
-
