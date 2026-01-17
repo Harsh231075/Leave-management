@@ -1,4 +1,5 @@
 import express from "express";
+import path from "path";
 import cors from "cors";
 import dotenv from "dotenv";
 import { connectToMongo } from "./lib/mongoose";
@@ -29,6 +30,11 @@ const PORT = process.env.PORT ? Number(process.env.PORT) : 4000;
     app.use("/api/leaves", leaveRoutes);
     app.use("/api/attendance", attendanceRoutes);
     app.use("/api/auth", authRoutes);
+
+    app.get("/", (_req, res) => {
+      const filePath = path.resolve(__dirname, "views", "root.html");
+      return res.sendFile(filePath);
+    });
   } catch (err) {
     console.warn("Could not mount routes:", err);
   }
