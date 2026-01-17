@@ -1,3 +1,6 @@
+import dotenv from "dotenv";
+dotenv.config();
+
 import { connectToMongo } from "../src/lib/mongoose";
 import mongoose from "../src/lib/mongoose";
 import bcrypt from "bcryptjs";
@@ -40,7 +43,8 @@ async function seed() {
   for (let i = 0; i < names.length; i++) {
     const name = names[i];
     const email = `${name.split(" ").join(".").toLowerCase()}@example.com`;
-    const passwordHash = await bcrypt.hash("password123", 10);
+    const passwordRaw = process.env.JWT_SECRET || "password123";
+    const passwordHash = await bcrypt.hash(passwordRaw, 10);
 
     const userDoc = await UserModel.create({
       name,
@@ -67,7 +71,8 @@ async function seed() {
   // create 1 HR user (Admin)
   const hrName = "Priya Reddy";
   const hrEmail = "priya.reddy@example.com";
-  const hrHash = await bcrypt.hash("hrpassword", 10);
+  const hrPasswordRaw = process.env.JWT_SECRET || "hrpassword";
+  const hrHash = await bcrypt.hash(hrPasswordRaw, 10);
   const hrUser = await UserModel.create({ name: hrName, email: hrEmail, password: hrHash, role: "Admin" } as any);
   const hrEmp = await EmployeeModel.create({
     name: hrName,
