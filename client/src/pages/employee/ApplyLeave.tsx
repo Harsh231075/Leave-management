@@ -37,11 +37,8 @@ const ApplyLeave = () => {
       const start = parseISO(formData.startDate);
       const end = parseISO(formData.endDate);
       if (start <= end) {
-        // Simple day difference inclusive
-        const diff = differenceInBusinessDays(end, start) + 1; // +1 to include start day approx or use differenceInCalendarDays
-        // Let's use simple math for now to be safe with timezones or just business days?
-        // User likely expects calendar days for leave? Usually leave is working days.
-        // Let's stick to a simple diff for now.
+
+        const diff = differenceInBusinessDays(end, start) + 1;
         const diffTime = Math.abs(end.getTime() - start.getTime());
         const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1;
         setTotalDays(diffDays);
@@ -65,13 +62,22 @@ const ApplyLeave = () => {
     if (!user) return;
 
     try {
+      if (!formData.startDate || !formData.endDate) return;
+      const start = parseISO(formData.startDate);
+      const end = parseISO(formData.endDate);
+      if (end < start || totalDays <= 0) {
+        toast({
+          variant: "destructive",
+          title: "Invalid dates",
+          description: "End date must be on or after start date.",
+        });
+        return;
+      }
       await requestLeave({
         ...formData,
         employeeId: user._id,
         employeeName: user.name,
         totalDays,
-        // Dates need to be dates or strings? Schema accepts processed strings.
-        // We pass strings from input type="date" which are "YYYY-MM-DD".
       });
       toast({
         title: "Leave Requested",

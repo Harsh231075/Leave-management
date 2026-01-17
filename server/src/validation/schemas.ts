@@ -37,7 +37,6 @@ export const AuthRegisterSchema = z.object({
   email: z.string().email(),
   password: z.string().min(6),
   role: z.string().optional(),
-  // Optional employee profile fields
   department: z.string().optional(),
   dateOfJoining: z
     .preprocess((v) => (typeof v === "string" ? new Date(v) : v), z.date())
