@@ -2,6 +2,13 @@
 
 A comprehensive full-stack application for managing employee leaves, attendance, and administrative tasks.
 
+## Live Demo / Deployment
+
+- Frontend (live): https://hrms.harshbaghel.me/
+- Backend (API): https://apihrms.harshbaghel.me/
+- Frontend deployed on Vercel. Backend deployed on DigitalOcean.
+
+
 ## Project Structure
 
 The project is divided into two main parts:

@@ -27,8 +27,3 @@ This starts the server on `PORT` (default `4000`).
 Notes
 - Per request, this is a basic server skeleton without routes or data models. Add routes under `src/` when ready.
 
-## Live Demo / Deployment
-
-- Frontend (live): https://hrms.harshbaghel.me/
-- Backend (API): https://apihrms.harshbaghel.me/
-- Frontend deployed on Vercel. Backend deployed on DigitalOcean.
