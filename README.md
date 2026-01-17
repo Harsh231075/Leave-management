@@ -22,6 +22,7 @@ For detailed information about the directory structure of each part, please refe
 
 - [Backend Structure](./doc/backend_structure.txt)
 - [Frontend Structure](./doc/frontend_structure.txt)
+- [Ai Use & MyContribution](./contributions_ai.md)
 
 ## Getting Started
 
