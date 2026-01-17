@@ -14,6 +14,7 @@ import {
 import { cn } from "@/lib/utils";
 import { Dialog, DialogTrigger, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter, DialogClose } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
+import { useAuthStore } from "@/store/useAuthStore";
 
 interface SidebarProps {
   role: "employee" | "admin";
@@ -117,7 +118,7 @@ const Sidebar = ({ role, isOpen = true, onClose }: SidebarProps) => {
                   <DialogClose asChild>
                     <Button variant="outline">Cancel</Button>
                   </DialogClose>
-                  <Button className="text-destructive" onClick={() => { navigate('/login'); }}>Logout</Button>
+                  <Button className="text-destructive" onClick={() => { try { useAuthStore.getState().logout(); } catch (e) { } navigate('/login', { replace: true }); }}>Logout</Button>
                 </div>
               </DialogFooter>
             </DialogContent>

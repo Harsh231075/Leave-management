@@ -1,4 +1,4 @@
-# AI & Tools Used — Contribution Statement (English)
+# AI & Tools Used — Contribution Statement
 
 ## Frontend
 

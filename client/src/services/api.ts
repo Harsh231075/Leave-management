@@ -28,10 +28,6 @@ api.interceptors.response.use(
     (response) => response,
     (error) => {
         if (error.response?.status === 401) {
-            // Clear local storage and redirect to login if needed
-            // localStorage.removeItem('token');
-            // window.location.href = '/auth/login';
-            // For now, let the store handle the cleanup/redirect to avoid circular deps or rigid behavior
         }
         return Promise.reject(error);
     }

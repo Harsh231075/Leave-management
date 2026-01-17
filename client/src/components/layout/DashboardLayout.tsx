@@ -1,5 +1,8 @@
-import { Outlet } from "react-router-dom";
+import { Outlet, useNavigate } from "react-router-dom";
 import Sidebar from "./Sidebar";
+import { useEffect } from "react";
+import { useAuthStore } from "@/store/useAuthStore";
+import { useToast } from "@/hooks/use-toast";
 
 interface DashboardLayoutProps {
   role: "employee" | "admin";
@@ -7,6 +10,16 @@ interface DashboardLayoutProps {
 }
 
 const DashboardLayout = ({ role, title }: DashboardLayoutProps) => {
+  const navigate = useNavigate();
+  const { isAuthenticated } = useAuthStore();
+  const { toast } = useToast();
+
+  useEffect(() => {
+    if (!isAuthenticated) {
+      toast({ title: "Signed out", description: "You have been signed out. Please login to continue." });
+      navigate("/login", { replace: true });
+    }
+  }, [isAuthenticated, navigate, toast]);
   return (
     <div className="flex min-h-screen w-full bg-background">
       <Sidebar role={role} isOpen={true} />

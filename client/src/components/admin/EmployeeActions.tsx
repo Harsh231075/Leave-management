@@ -10,6 +10,8 @@ import {
 import ViewEmployeeModal from "./ViewEmployeeModal";
 import EditEmployeeModal from "./EditEmployeeModal";
 import ConfirmDeleteModal from "./ConfirmDeleteModal";
+import { useEmployeeStore } from "@/store/useEmployeeStore";
+import { useToast } from "@/hooks/use-toast";
 
 interface Props {
   employee: any;
@@ -19,9 +21,16 @@ const EmployeeActions = ({ employee }: Props) => {
   const [viewOpen, setViewOpen] = useState(false);
   const [editOpen, setEditOpen] = useState(false);
   const [delOpen, setDelOpen] = useState(false);
+  const { removeEmployee } = useEmployeeStore();
+  const { toast } = useToast();
 
-  const handleDelete = () => {
-    console.log("Delete confirmed for", employee);
+  const handleDelete = async () => {
+    try {
+      await removeEmployee(employee._id);
+      toast({ title: "Deleted", description: "Employee deleted successfully" });
+    } catch (error: any) {
+      toast({ variant: "destructive", title: "Error", description: error.response?.data?.error || "Failed to delete" });
+    }
   };
 
   return (

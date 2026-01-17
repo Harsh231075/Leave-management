@@ -15,3 +15,12 @@ export const createEmployee = async (data: CreateEmployeeInput): Promise<User> =
     const response = await api.post<User>('/employees', data);
     return response.data;
 };
+
+export const updateEmployee = async (id: string, data: Partial<CreateEmployeeInput>): Promise<User> => {
+    const response = await api.put<User>(`/employees/${id}`, data);
+    return response.data;
+};
+
+export const deleteEmployee = async (id: string): Promise<void> => {
+    await api.delete(`/employees/${id}`);
+};

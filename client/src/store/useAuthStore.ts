@@ -2,6 +2,7 @@ import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { User, LoginCredentials, RegisterCredentials } from '../types';
 import { login, register } from '../services/authService';
+import api from '../services/api';
 
 interface AuthState {
     user: User | null;
@@ -63,7 +64,18 @@ export const useAuthStore = create<AuthState>()(
             },
             logout: () => {
                 set({ user: null, token: null, isAuthenticated: false });
-                localStorage.removeItem('token');
+                try {
+                    localStorage.removeItem('token');
+                    localStorage.removeItem('auth-storage');
+                } catch (e) { }
+                try {
+                    if (api && api.defaults && api.defaults.headers) {
+                        delete api.defaults.headers.common['Authorization'];
+                    }
+                } catch (e) { }
+                try {
+                    localStorage.setItem('logout', Date.now().toString());
+                } catch (e) { }
             },
             setUser: (user) => set({ user }),
         }),
