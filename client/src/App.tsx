@@ -25,6 +25,7 @@ import EmployeeManagement from "./pages/admin/EmployeeManagement";
 
 // Layouts
 import DashboardLayout from "./components/layout/DashboardLayout";
+import ProtectedRoute from "./components/layout/ProtectedRoute";
 
 const queryClient = new QueryClient();
 
@@ -41,7 +42,14 @@ const App = () => (
           <Route path="/signup" element={<Signup />} />
 
           {/* Employee Routes */}
-          <Route path="/employee" element={<DashboardLayout role="employee" title="Employee Dashboard" />}>
+          <Route
+            path="/employee"
+            element={
+              <ProtectedRoute allowedRoles={["employee"]}>
+                <DashboardLayout role="employee" title="Employee Dashboard" />
+              </ProtectedRoute>
+            }
+          >
             <Route index element={<EmployeeDashboard />} />
             <Route path="apply-leave" element={<ApplyLeave />} />
             <Route path="leave-history" element={<LeaveHistory />} />
@@ -50,7 +58,14 @@ const App = () => (
           </Route>
 
           {/* Admin Routes */}
-          <Route path="/admin" element={<DashboardLayout role="admin" title="Admin Dashboard" />}>
+          <Route
+            path="/admin"
+            element={
+              <ProtectedRoute allowedRoles={["admin"]}>
+                <DashboardLayout role="admin" title="Admin Dashboard" />
+              </ProtectedRoute>
+            }
+          >
             <Route index element={<AdminDashboard />} />
             <Route path="leave-requests" element={<LeaveRequests />} />
             <Route path="attendance" element={<AttendanceOverview />} />
