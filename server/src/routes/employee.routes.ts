@@ -1,5 +1,5 @@
 import express from "express";
-import { createEmployee, listEmployees, getEmployeeById, updateEmployee, deleteEmployee, getEmployeeByEmail, getEmployeeByUserId } from "../controllers/employee.controller";
+import { createEmployee, listEmployees, getEmployeeById, updateEmployee, deleteEmployee, getEmployeeByUserId } from "../controllers/employee.controller";
 import { EmployeeCreateSchema } from "../validation/schemas";
 import validate from "../middleware/validate";
 import requireAuth from "../middleware/auth";

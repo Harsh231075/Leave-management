@@ -8,32 +8,27 @@ import requireRole from "../middleware/roles";
 
 const router = express.Router();
 
-router.post(
-  "/",
-  requireAuth,
-  requireRole("Employee", "Admin"),
-  validate(LeaveRequestCreateSchema),
-  async (req, res) => {
-    try {
-      const user = (req as any).user || {};
-      const role = (user.role || "").toLowerCase();
-      if (role === "employee") {
+router.post("/", requireAuth, requireRole("Employee", "Admin"), validate(LeaveRequestCreateSchema), async (req, res) => {
+  try {
+    const user = (req as any).user || {};
+    const role = (user.role || "").toLowerCase();
+    if (role === "employee") {
+      const emp = await getEmployeeByUserId(user.id);
+      const empDoc = Array.isArray(emp) ? (emp[0] as any) : (emp as any);
+      (req.body as any).employeeId = empDoc?._id?.toString?.() || user.id;
+    } else {
+      if (!(req.body as any).employeeId) {
         const emp = await getEmployeeByUserId(user.id);
         const empDoc = Array.isArray(emp) ? (emp[0] as any) : (emp as any);
         (req.body as any).employeeId = empDoc?._id?.toString?.() || user.id;
-      } else {
-        if (!(req.body as any).employeeId) {
-          const emp = await getEmployeeByUserId(user.id);
-          const empDoc = Array.isArray(emp) ? (emp[0] as any) : (emp as any);
-          (req.body as any).employeeId = empDoc?._id?.toString?.() || user.id;
-        }
       }
-      const doc = await createLeaveRequest(req.body);
-      return res.status(201).json(doc);
-    } catch (err: any) {
-      return res.status(500).json({ error: err.message || err });
     }
+    const doc = await createLeaveRequest(req.body);
+    return res.status(201).json(doc);
+  } catch (err: any) {
+    return res.status(500).json({ error: err.message || err });
   }
+}
 );
 
 router.get("/", requireAuth, requireRole("Admin"), async (_req, res) => {
