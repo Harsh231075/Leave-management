@@ -91,7 +91,7 @@ async function seed() {
 
   // For each employee, create 1 leave request and 3 attendance records
   for (let i = 0; i < employees.length; i++) {
-    const empId = i + 1; // numeric id used by Leave/Attendance schemas
+    const empId = (employees[i] as any)._id; // use ObjectId from created employee
     const empName = employees[i].name;
 
     // leave request (some pending, some approved)
