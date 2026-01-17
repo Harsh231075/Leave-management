@@ -20,9 +20,11 @@ The project is divided into two main parts:
 
 For detailed information about the directory structure of each part, please refer to the `doc` folder:
 
-- [Backend Structure](./doc/backend_structure.txt)
-- [Frontend Structure](./doc/frontend_structure.txt)
+- [Backend Structure](./doc/backend_structure.md)
+- [Frontend Structure](./doc/frontend_structure.md)
 - [Ai Use & MyContribution](./contributions_ai.md)
+- [Apis](./API.md)
+
 
 ## Getting Started
 
