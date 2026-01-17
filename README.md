@@ -22,8 +22,8 @@ For detailed information about the directory structure of each part, please refe
 
 - [Backend Structure](./doc/backend_structure.md)
 - [Frontend Structure](./doc/frontend_structure.md)
-- [Ai Use & MyContribution](./contributions_ai.md)
-- [Apis](./API.md)
+- [Ai Use & MyContribution](./doc/contributions_ai.md)
+- [Apis](./doc/API.md)
 
 
 ## Getting Started

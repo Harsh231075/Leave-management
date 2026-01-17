@@ -2,137 +2,64 @@
 
 Base URL: `/api`
 
-All protected endpoints require an Authorization header:
+All protected endpoints require the header `Authorization: Bearer <token>`.
 
-- `Authorization: Bearer <token>`
-
-Auth tokens are issued by `POST /api/auth/login` and contain `{ id, email, role }` in the payload.
+Auth tokens are issued by `POST /api/auth/login` and include `{ id, email, role }` in the payload.
 
 ----
 
-## Auth
+## Endpoints (tabular)
 
-### POST /api/auth/register
-- Description: Register a new user (Employee or Admin).
-- Body (JSON):
-  - `name` (string, min 2)
-  - `email` (string, email)
-  - `password` (string, min 6)
-  - `role` (string, optional) — e.g. `Employee` or `Admin`
-- Response: 201 Created — returns the created user object (password omitted).
-- Errors: 400 — validation or duplicate email.
+### Auth
 
-### POST /api/auth/login
-- Description: Log in with email and password.
-- Body (JSON):
-  - `email` (string)
-  - `password` (string)
-- Response: 200 OK — `{ token: string, user: { ... } }` (token = JWT).
-- Errors: 400 — invalid credentials or validation.
+| Method | Path | Auth | Body | Success Response |
+| --- | --- | --- | --- | --- |
+| POST | /auth/register | No | `name`, `email`, `password`, `role?` | 201 Created — created user (password omitted) |
+| POST | /auth/login | No | `email`, `password` | 200 OK — `{ token, user }` |
 
-----
+### Employees (Admin only)
 
-## Employees
+| Method | Path | Auth | Body | Success Response |
+| --- | --- | --- | --- | --- |
+| POST | /employees | Admin | `name`, `email`, `role?`, `dateOfJoining?`, `leaveBalance?`, `department?`, `avatar?` | 201 Created — employee doc |
+| GET | /employees | Admin | — | 200 OK — [employee] |
+| GET | /employees/:id | Admin | — | 200 OK — employee |
+| PUT | /employees/:id | Admin | partial employee fields | 200 OK — updated employee |
+| DELETE | /employees/:id | Admin | — | 200 OK — `{ success: true, deleted: <doc> }` |
 
-> Note: Employee management endpoints are Admin-only.
+### Leave Requests
 
-### POST /api/employees
-- Auth: required (Admin)
-- Body (JSON):
-  - `name` (string)
-  - `email` (string)
-  - `role` (string, optional)
-  - `dateOfJoining` (ISO date or string, optional)
-  - `leaveBalance` (number, optional)
-  - `department` (string, optional)
-  - `avatar` (string | null, optional)
-- Response: 201 Created — created employee document.
+| Method | Path | Auth | Body | Success Response |
+| --- | --- | --- | --- | --- |
+| POST | /leaves | Employee, Admin | `employeeId?`, `employeeName`, `leaveType`, `startDate`, `endDate`, `totalDays`, `reason?`, `status?` | 201 Created — leave request |
+| GET | /leaves | Admin | — | 200 OK — [leave requests] |
+| GET | /leaves/mine | Authenticated | — | 200 OK — [user's leave requests] |
+| PUT | /leaves/:id | Admin | partial leave fields (e.g., `status`) | 200 OK — updated leave request |
 
-### GET /api/employees
-- Auth: required (Admin)
-- Response: 200 OK — array of employee documents.
+### Attendance
 
-### GET /api/employees/:id
-- Auth: required (Admin)
-- Response: 200 OK — single employee document, or 404 if not found.
-
-### PUT /api/employees/:id
-- Auth: required (Admin)
-- Body: same as POST allowed fields — updates employee.
-- Response: 200 OK — updated employee, or 404 if not found.
-
-### DELETE /api/employees/:id
-- Auth: required (Admin)
-- Response: 200 OK — `{ success: true, deleted: <doc> }` or 404.
+| Method | Path | Auth | Body | Success Response |
+| --- | --- | --- | --- | --- |
+| POST | /attendance | Employee, Admin | `employeeId?`, `employeeName`, `date`, `status` | 201 Created — attendance record |
+| GET | /attendance | Admin | — | 200 OK — [attendance records] |
+| GET | /attendance/mine | Authenticated | — | 200 OK — [user's attendance] |
 
 ----
 
-## Leave Requests
+## Validation & Middleware
 
-### POST /api/leaves
-- Auth: required (Employee or Admin)
-- Behavior: if `employeeId` is not provided, the server will set it from the authenticated token (`req.user.id`).
-- Body (JSON):
-  - `employeeId` (string | number) — optional if caller is authenticated
-  - `employeeName` (string)
-  - `leaveType` (string)
-  - `startDate` (ISO date)
-  - `endDate` (ISO date)
-  - `totalDays` (number)
-  - `reason` (string, optional)
-  - `status` (string, optional)
-- Response: 201 Created — created leave request document.
-
-### GET /api/leaves
-- Auth: required (Admin)
-- Response: 200 OK — all leave requests.
-
-### GET /api/leaves/mine
-- Auth: required
-- Response: 200 OK — leave requests filtered to the authenticated user.
-
-### PUT /api/leaves/:id
-- Auth: required (Admin)
-- Body: fields to update (e.g., `status` to Approve/Reject)
-- Response: 200 OK — updated leave request, or 404.
-
-----
-
-## Attendance
-
-### POST /api/attendance
-- Auth: required (Employee or Admin)
-- Behavior: if `employeeId` is not provided, the server will set it from the authenticated token.
-- Body (JSON):
-  - `employeeId` (string | number) — optional if caller is authenticated
-  - `employeeName` (string)
-  - `date` (ISO date)
-  - `status` (string) — e.g., `Present`, `Absent`
-- Response: 201 Created — created attendance record.
-
-### GET /api/attendance
-- Auth: required (Admin)
-- Response: 200 OK — all attendance records.
-
-### GET /api/attendance/mine
-- Auth: required
-- Response: 200 OK — attendance records filtered to the authenticated user.
-
-----
-
-## Middleware & Validation
-
-- Request bodies are validated using Zod schemas found in `src/validation/schemas.ts`:
-  - `EmployeeCreateSchema`, `LeaveRequestCreateSchema`, `AttendanceCreateSchema`, `AuthRegisterSchema`, `AuthLoginSchema`.
-- Auth middleware: `src/middleware/auth.ts` — expects `Authorization: Bearer <token>` and attaches `req.user` with token payload.
-- Role middleware: `src/middleware/roles.ts` — `requireRole("Admin")` or `requireRole("Employee","Admin")` used on routes.
+- Request bodies validated via Zod schemas in `src/validation/schemas.ts`.
+- Auth middleware: `src/middleware/auth.ts` — parses JWT from `Authorization` and sets `req.user`.
+- Role middleware: `src/middleware/roles.ts` — `requireRole("Admin")` or `requireRole("Employee","Admin")` for route protection.
 
 ----
 
 ## Notes
 
-- All endpoints return JSON and standard HTTP status codes (200, 201, 400, 401, 403, 404, 500).
-- `employeeId` fields in `LeaveRequest` and `Attendance` are stored as MongoDB ObjectId references to `Employee`.
-- Use the `POST /api/auth/login` response token in `Authorization` header for protected calls.
+- All responses are JSON. Common status codes: `200`, `201`, `400`, `401`, `403`, `404`, `500`.
+- `employeeId` in `LeaveRequest` and `Attendance` is stored as an ObjectId referencing `Employee`.
+- Use the JWT from `/auth/login` in the `Authorization` header for protected endpoints.
 
-If you want, I can: add example cURL commands for each endpoint, include sample responses, or generate an OpenAPI spec. Which would you like next?
+If you want example cURL commands or an OpenAPI spec, tell me which endpoints you'd like examples for.
+- Auth: required (Admin)
+
