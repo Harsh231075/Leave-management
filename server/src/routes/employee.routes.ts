@@ -1,5 +1,5 @@
 import express from "express";
-import { createEmployee, listEmployees, getEmployeeById } from "../controllers/employee.controller";
+import { createEmployee, listEmployees, getEmployeeById, updateEmployee, deleteEmployee } from "../controllers/employee.controller";
 import { EmployeeCreateSchema } from "../validation/schemas";
 import validate from "../middleware/validate";
 import requireAuth from "../middleware/auth";
@@ -30,6 +30,26 @@ router.get("/:id", requireAuth, requireRole("Admin"), async (req, res) => {
     const doc = await getEmployeeById(req.params.id);
     if (!doc) return res.status(404).json({ error: "Not found" });
     return res.json(doc);
+  } catch (err: any) {
+    return res.status(500).json({ error: err.message || err });
+  }
+});
+
+router.put("/:id", requireAuth, requireRole("Admin"), async (req, res) => {
+  try {
+    const doc = await updateEmployee(req.params.id, req.body);
+    if (!doc) return res.status(404).json({ error: "Not found" });
+    return res.json(doc);
+  } catch (err: any) {
+    return res.status(500).json({ error: err.message || err });
+  }
+});
+
+router.delete("/:id", requireAuth, requireRole("Admin"), async (req, res) => {
+  try {
+    const doc = await deleteEmployee(req.params.id);
+    if (!doc) return res.status(404).json({ error: "Not found" });
+    return res.json({ success: true, deleted: doc });
   } catch (err: any) {
     return res.status(500).json({ error: err.message || err });
   }

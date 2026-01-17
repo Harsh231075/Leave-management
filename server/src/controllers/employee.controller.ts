@@ -25,3 +25,13 @@ export async function getEmployeeById(id: string) {
   const doc = await EmployeeModel.findById(id).lean();
   return doc;
 }
+
+export async function updateEmployee(id: string, input: Partial<EmployeeCreateInput>) {
+  const doc = await EmployeeModel.findByIdAndUpdate(id, input, { new: true }).lean();
+  return doc;
+}
+
+export async function deleteEmployee(id: string) {
+  const doc = await EmployeeModel.findByIdAndDelete(id).lean();
+  return doc;
+}

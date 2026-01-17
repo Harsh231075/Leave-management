@@ -3,9 +3,9 @@ import { LeaveRequest as ILeaveRequest } from "../types/LeaveRequest";
 
 export type LeaveRequestDoc = mongoose.HydratedDocument<Omit<ILeaveRequest, 'id'>>;
 
-const LeaveRequestSchema = new Schema<Omit<ILeaveRequest, 'id'>>(
+const LeaveRequestSchema = new Schema(
   {
-    employeeId: { type: Number, required: true },
+    employeeId: { type: Schema.Types.ObjectId, ref: 'Employee', required: true },
     employeeName: { type: String, required: true },
     leaveType: { type: String, required: true },
     startDate: { type: Date, required: true },
@@ -16,7 +16,6 @@ const LeaveRequestSchema = new Schema<Omit<ILeaveRequest, 'id'>>(
   },
   { timestamps: true }
 );
-
 const LeaveRequestModel = mongoose.models.LeaveRequest || mongoose.model<LeaveRequestDoc>("LeaveRequest", LeaveRequestSchema as any);
 
 export default LeaveRequestModel;

@@ -2,8 +2,8 @@ export type LeaveType = "Casual" | "Sick" | "Paid" | string;
 export type LeaveStatus = "Approved" | "Pending" | "Rejected" | string;
 
 export interface LeaveRequest {
-  id: number;
-  employeeId: number;
+  id: string;
+  employeeId: string;
   employeeName: string;
   leaveType: LeaveType;
   startDate: Date | string; // ISO date or Date
