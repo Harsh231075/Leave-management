@@ -4,6 +4,12 @@
 
 **URL**: https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID
 
+## Live Demo
+
+- Frontend (live): https://hrms.harshbaghel.me/
+- Backend (API): https://apihrms.harshbaghel.me/
+- Frontend deployed on Vercel. Backend deployed on DigitalOcean.
+
 ## How can I edit this code?
 
 There are several ways of editing your application.
