@@ -51,8 +51,20 @@ For detailed information about the directory structure of each part, please refe
         ```
 
 3.  **Environment Setup:**
-    *   Create a `.env` file in the `server` directory with the necessary variables (PORT, MONGO_URI, etc.).
-    *   Create a `.env` file in the `client` directory if required.
+        *   Create a `.env` file in the `server` directory with the necessary variables (see below) or copy `server/.env.example`.
+        *   Create a `.env` file in the `client` directory if required or copy `client/.env.example`.
+
+        Environment variables used by this project (examples):
+
+        - Server (`server/.env` or `server/.env.example`):
+            - `PORT` — port the backend listens on (default `5001`).
+            - `MONGODB_URI` — MongoDB connection string (e.g., `mongodb://127.0.0.1:27017/leave-management`).
+            - `MONGODB_DB` — optional DB name passed to Mongoose.
+            - `JWT_SECRET` — secret used to sign JWT tokens (set a strong secret in production).
+            - `JWT_EXPIRES` — JWT expiration (e.g., `7d`).
+
+        - Client (`client/.env` or `client/.env.example`):
+            - `VITE_API_URL` — base API URL the client calls (e.g., `http://localhost:5001/api`).
 
 4.  **Run the Application:**
 

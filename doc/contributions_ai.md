@@ -56,7 +56,7 @@
 
 # Implementation Time
 
-This file records the total implementation time for the project scope completed during the current development effort.
+The total implementation time for the project scope completed during the current development effort.
 
 - Total elapsed implementation time: **12 hours** (approx.).
 
