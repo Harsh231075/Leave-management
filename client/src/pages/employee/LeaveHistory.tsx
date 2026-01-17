@@ -1,27 +1,34 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
-import { ArrowLeft, Plus, Filter } from "lucide-react";
+import { ArrowLeft, Plus, Filter, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import DataTable from "@/components/ui/DataTable";
 import StatusBadge from "@/components/ui/StatusBadge";
 import CardContainer from "@/components/ui/CardContainer";
-import { leaveRequests } from "@/data/dummyData";
 import FormSelect from "@/components/ui/FormSelect";
-import { i } from "node_modules/vite/dist/node/types.d-aGj9QkWt";
+import { useLeaveStore } from "@/store/useLeaveStore";
+import { format, parseISO } from "date-fns";
+import { LeaveRequest } from "@/types";
 
 const LeaveHistory = () => {
-  const employeeLeaves = leaveRequests.filter(r => r.employeeId === 1);
+  const { myLeaves, fetchMyLeaves, isLoading } = useLeaveStore();
+
   const [showFilters, setShowFilters] = useState(false);
   const [statusFilter, setStatusFilter] = useState("all");
-  const filteredLeaves = employeeLeaves.filter(l => statusFilter === "all" ? true : l.status === statusFilter);
+
+  useEffect(() => {
+    fetchMyLeaves();
+  }, [fetchMyLeaves]);
+
+  const filteredLeaves = myLeaves.filter(l => statusFilter === "all" ? true : l.status === statusFilter);
 
   const columns = [
     { key: "leaveType", header: "Leave Type" },
     {
       key: "dateRange",
       header: "Date Range",
-      render: (item: typeof employeeLeaves[0]) => (
-        <span>{item.startDate} — {item.endDate}</span>
+      render: (item: LeaveRequest) => (
+        <span>{format(parseISO(item.startDate as string), 'MMM dd, yyyy')} — {format(parseISO(item.endDate as string), 'MMM dd, yyyy')}</span>
       )
     },
     { key: "totalDays", header: "Total Days" },
@@ -29,7 +36,7 @@ const LeaveHistory = () => {
     {
       key: "status",
       header: "Status",
-      render: (item: typeof employeeLeaves[0]) => (
+      render: (item: LeaveRequest) => (
         <StatusBadge status={item.status as "Approved" | "Pending" | "Rejected"} />
       )
     },
@@ -70,19 +77,19 @@ const LeaveHistory = () => {
         <div className="p-4 rounded-xl bg-success/10 border border-success/20">
           <p className="text-sm text-success font-medium">Approved</p>
           <p className="text-2xl font-bold text-success mt-1">
-            {employeeLeaves.filter(l => l.status === "Approved").length}
+            {myLeaves.filter(l => l.status === "Approved").length}
           </p>
         </div>
         <div className="p-4 rounded-xl bg-warning/10 border border-warning/20">
           <p className="text-sm text-warning font-medium">Pending</p>
           <p className="text-2xl font-bold text-warning mt-1">
-            {employeeLeaves.filter(l => l.status === "Pending").length}
+            {myLeaves.filter(l => l.status === "Pending").length}
           </p>
         </div>
         <div className="p-4 rounded-xl bg-destructive/10 border border-destructive/20">
           <p className="text-sm text-destructive font-medium">Rejected</p>
           <p className="text-2xl font-bold text-destructive mt-1">
-            {employeeLeaves.filter(l => l.status === "Rejected").length}
+            {myLeaves.filter(l => l.status === "Rejected").length}
           </p>
         </div>
       </div>
@@ -103,10 +110,17 @@ const LeaveHistory = () => {
 
       {/* Table */}
       <CardContainer title="All Leave Requests" description="Complete history of your leave applications">
-        <DataTable columns={columns} data={filteredLeaves} />
+        {isLoading ? (
+          <div className="flex justify-center p-8">
+            <Loader2 className="h-8 w-8 animate-spin text-primary" />
+          </div>
+        ) : (
+          <DataTable columns={columns} data={filteredLeaves} />
+        )}
       </CardContainer>
     </div>
   );
 };
 
 export default LeaveHistory;
+

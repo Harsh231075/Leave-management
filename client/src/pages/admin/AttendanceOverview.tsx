@@ -1,44 +1,77 @@
-import { useState } from "react";
-
+import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
-import { ArrowLeft, Filter, Download, Calendar } from "lucide-react";
+import { ArrowLeft, Filter, Download, Calendar, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import DataTable from "@/components/ui/DataTable";
 import StatusBadge from "@/components/ui/StatusBadge";
 import CardContainer from "@/components/ui/CardContainer";
 import FormSelect from "@/components/ui/FormSelect";
-//import FormInput from "@/components/ui/FormInput";
-import { attendanceRecords, employees } from "@/data/dummyData";
-//import { i } from "node_modules/vite/dist/node/types.d-aGj9QkWt";
+import { useAttendanceStore } from "@/store/useAttendanceStore";
+import { useEmployeeStore } from "@/store/useEmployeeStore";
+import { format, parseISO } from "date-fns";
+import { Attendance } from "@/types";
 
 const AttendanceOverview = () => {
+  const { attendanceRecords, fetchAllAttendance, isLoading } = useAttendanceStore();
+  const { employees, fetchEmployees } = useEmployeeStore();
+
+  useEffect(() => {
+    fetchAllAttendance();
+    fetchEmployees();
+  }, [fetchAllAttendance, fetchEmployees]);
+
+  const [selectedEmployee, setSelectedEmployee] = useState("all");
+  const [startDate, setStartDate] = useState("");
+  const [endDate, setEndDate] = useState("");
+  const [filteredRecords, setFilteredRecords] = useState<Attendance[]>([]);
+
+  // Initial load
+  useEffect(() => {
+    if (!isLoading) {
+      setFilteredRecords(attendanceRecords);
+    }
+  }, [attendanceRecords, isLoading]);
+
   const employeeOptions = [
     { value: "all", label: "All Employees" },
-    ...employees.map(e => ({ value: e.id.toString(), label: e.name }))
+    ...employees.map(e => ({ value: e._id, label: e.name }))
   ];
 
   const columns = [
     { key: "employeeName", header: "Employee Name" },
-    { key: "date", header: "Date" },
+    {
+      key: "date",
+      header: "Date",
+      render: (item: Attendance) => <span>{format(parseISO(item.date), 'MMM dd, yyyy')}</span>
+    },
     {
       key: "status",
       header: "Status",
-      render: (item: typeof attendanceRecords[0]) => (
+      render: (item: Attendance) => (
         <StatusBadge status={item.status as "Present" | "Absent"} />
       )
     },
   ];
 
-  const [selectedEmployee, setSelectedEmployee] = useState("all");
-  const [startDate, setStartDate] = useState("");
-  const [endDate, setEndDate] = useState("");
-  const [filteredRecords, setFilteredRecords] = useState(attendanceRecords);
-
-  const computeStats = (records: typeof attendanceRecords) => {
+  const computeStats = (records: Attendance[]) => {
     const presentCount = records.filter(a => a.status === "Present").length;
     const absentCount = records.filter(a => a.status === "Absent").length;
     const attendanceRate = records.length ? Math.round((presentCount / records.length) * 100) : 0;
     return { presentCount, absentCount, attendanceRate };
+  };
+
+  const handleApplyFilters = () => {
+    const start = startDate ? new Date(startDate) : null;
+    const end = endDate ? new Date(endDate) : null;
+
+    const filtered = attendanceRecords.filter(r => {
+      if (selectedEmployee !== "all" && r.employeeId !== selectedEmployee) return false;
+      const d = new Date(r.date);
+      if (start && d < start) return false;
+      if (end && d > end) return false;
+      return true;
+    });
+    setFilteredRecords(filtered);
   };
 
   const { presentCount, absentCount, attendanceRate } = computeStats(filteredRecords);
@@ -105,18 +138,7 @@ const AttendanceOverview = () => {
           </div>
         </div>
         <div className="flex justify-end mt-4">
-          <Button size="sm" className="gradient-primary text-primary-foreground" onClick={() => {
-            const start = startDate ? new Date(startDate) : null;
-            const end = endDate ? new Date(endDate) : null;
-            const filtered = attendanceRecords.filter(r => {
-              if (selectedEmployee !== "all" && r.employeeId.toString() !== selectedEmployee) return false;
-              const d = new Date(r.date);
-              if (start && d < start) return false;
-              if (end && d > end) return false;
-              return true;
-            });
-            setFilteredRecords(filtered);
-          }}>
+          <Button size="sm" className="gradient-primary text-primary-foreground" onClick={handleApplyFilters}>
             Apply Filters
           </Button>
         </div>
@@ -128,14 +150,21 @@ const AttendanceOverview = () => {
         headerAction={
           <div className="flex items-center gap-2 text-sm text-muted-foreground">
             <Calendar className="h-4 w-4" />
-            <span>Showing all records</span>
+            <span>Showing records</span>
           </div>
         }
       >
-        <DataTable columns={columns} data={filteredRecords} />
+        {isLoading ? (
+          <div className="flex justify-center p-8">
+            <Loader2 className="h-8 w-8 animate-spin text-primary" />
+          </div>
+        ) : (
+          <DataTable columns={columns} data={filteredRecords} />
+        )}
       </CardContainer>
     </div>
   );
 };
 
 export default AttendanceOverview;
+

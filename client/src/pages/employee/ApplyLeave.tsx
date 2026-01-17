@@ -1,17 +1,91 @@
-import { Link } from "react-router-dom";
-import { ArrowLeft, Calendar, FileText, Send } from "lucide-react";
+import { useState, useEffect } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import { ArrowLeft, Calendar, FileText, Send, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import FormInput from "@/components/ui/FormInput";
 import FormSelect from "@/components/ui/FormSelect";
 import FormTextarea from "@/components/ui/FormTextarea";
 import CardContainer from "@/components/ui/CardContainer";
+import { useLeaveStore } from "@/store/useLeaveStore";
+import { useAuthStore } from "@/store/useAuthStore";
+import { useToast } from "@/hooks/use-toast";
+import { differenceInBusinessDays, parseISO } from "date-fns";
 
 const ApplyLeave = () => {
+  const navigate = useNavigate();
+  const { requestLeave, isLoading } = useLeaveStore();
+  const { user } = useAuthStore();
+  const { toast } = useToast();
+
+  const [formData, setFormData] = useState({
+    leaveType: "",
+    startDate: "",
+    endDate: "",
+    reason: "",
+  });
+
+  const [totalDays, setTotalDays] = useState(0);
+
   const leaveTypeOptions = [
-    { value: "casual", label: "Casual Leave" },
-    { value: "sick", label: "Sick Leave" },
-    { value: "paid", label: "Paid Leave" },
+    { value: "Casual Leave", label: "Casual Leave" },
+    { value: "Sick Leave", label: "Sick Leave" },
+    { value: "Paid Leave", label: "Paid Leave" },
   ];
+
+  useEffect(() => {
+    if (formData.startDate && formData.endDate) {
+      const start = parseISO(formData.startDate);
+      const end = parseISO(formData.endDate);
+      if (start <= end) {
+        // Simple day difference inclusive
+        const diff = differenceInBusinessDays(end, start) + 1; // +1 to include start day approx or use differenceInCalendarDays
+        // Let's use simple math for now to be safe with timezones or just business days?
+        // User likely expects calendar days for leave? Usually leave is working days.
+        // Let's stick to a simple diff for now.
+        const diffTime = Math.abs(end.getTime() - start.getTime());
+        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1;
+        setTotalDays(diffDays);
+      } else {
+        setTotalDays(0);
+      }
+    }
+  }, [formData.startDate, formData.endDate]);
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    const { name, value } = e.target;
+    setFormData((prev) => ({ ...prev, [name]: value }));
+  };
+
+  const handleSelectChange = (name: string, value: string) => {
+    setFormData((prev) => ({ ...prev, [name]: value }));
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!user) return;
+
+    try {
+      await requestLeave({
+        ...formData,
+        employeeId: user._id,
+        employeeName: user.name,
+        totalDays,
+        // Dates need to be dates or strings? Schema accepts processed strings.
+        // We pass strings from input type="date" which are "YYYY-MM-DD".
+      });
+      toast({
+        title: "Leave Requested",
+        description: "Your leave request has been submitted successfully.",
+      });
+      navigate("/employee");
+    } catch (error: any) {
+      toast({
+        variant: "destructive",
+        title: "Request Failed",
+        description: error.response?.data?.error || "Could not submit leave request",
+      });
+    }
+  };
 
   return (
     <div className="page-container animate-fade-up">
@@ -31,12 +105,14 @@ const ApplyLeave = () => {
 
       <div className="w-full">
         <CardContainer>
-          <div className="space-y-6">
+          <form onSubmit={handleSubmit} className="space-y-6">
             {/* Leave Type */}
             <FormSelect
               label="Leave Type"
               options={leaveTypeOptions}
               placeholder="Select leave type"
+              value={formData.leaveType}
+              onChange={(val) => handleSelectChange("leaveType", val)}
               required
             />
 
@@ -44,12 +120,18 @@ const ApplyLeave = () => {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <FormInput
                 label="Start Date"
+                name="startDate"
                 type="date"
+                value={formData.startDate}
+                onChange={handleChange}
                 required
               />
               <FormInput
                 label="End Date"
+                name="endDate"
                 type="date"
+                value={formData.endDate}
+                onChange={handleChange}
                 required
               />
             </div>
@@ -61,7 +143,7 @@ const ApplyLeave = () => {
                   <Calendar className="h-5 w-5 text-primary" />
                   <span className="text-sm font-medium text-foreground">Total Days</span>
                 </div>
-                <span className="text-2xl font-bold text-primary">3</span>
+                <span className="text-2xl font-bold text-primary">{totalDays}</span>
               </div>
               <p className="text-xs text-muted-foreground mt-2">
                 Calculated automatically based on your selected dates
@@ -71,8 +153,11 @@ const ApplyLeave = () => {
             {/* Reason */}
             <FormTextarea
               label="Reason for Leave"
+              name="reason"
               placeholder="Please provide a brief description of why you need this leave..."
               rows={4}
+              value={formData.reason}
+              onChange={handleChange}
               required
             />
 
@@ -83,7 +168,7 @@ const ApplyLeave = () => {
                 <div>
                   <p className="text-sm font-medium text-foreground">Your Leave Balance</p>
                   <p className="text-sm text-muted-foreground mt-1">
-                    You have <span className="font-semibold text-primary">12 days</span> of leave remaining this year
+                    You have <span className="font-semibold text-primary">{user?.leaveBalance || 0} days</span> of leave remaining this year
                   </p>
                 </div>
               </div>
@@ -92,16 +177,20 @@ const ApplyLeave = () => {
             {/* Actions */}
             <div className="flex flex-col-reverse sm:flex-row gap-3 pt-4">
               <Link to="/employee" className="flex-1 sm:flex-none">
-                <Button variant="outline" className="w-full sm:w-auto">
+                <Button variant="outline" type="button" className="w-full sm:w-auto">
                   Cancel
                 </Button>
               </Link>
-              <Button className="flex-1 sm:flex-none gradient-primary text-primary-foreground">
-                <Send className="h-4 w-4 mr-2" />
+              <Button
+                type="submit"
+                className="flex-1 sm:flex-none gradient-primary text-primary-foreground"
+                disabled={isLoading}
+              >
+                {isLoading ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <Send className="h-4 w-4 mr-2" />}
                 Submit Request
               </Button>
             </div>
-          </div>
+          </form>
         </CardContainer>
       </div>
     </div>
@@ -109,3 +198,4 @@ const ApplyLeave = () => {
 };
 
 export default ApplyLeave;
+

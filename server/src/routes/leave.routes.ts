@@ -1,5 +1,5 @@
 import express from "express";
-import { createLeaveRequest, listLeaveRequests } from "../controllers/leave.controller";
+import { createLeaveRequest, listLeaveRequests, updateLeaveRequest } from "../controllers/leave.controller";
 import { LeaveRequestCreateSchema } from "../validation/schemas";
 import validate from "../middleware/validate";
 import requireAuth from "../middleware/auth";
@@ -28,6 +28,16 @@ router.get("/", requireAuth, requireRole("Admin"), async (_req, res) => {
   try {
     const docs = await listLeaveRequests();
     return res.json(docs);
+  } catch (err: any) {
+    return res.status(500).json({ error: err.message || err });
+  }
+});
+
+router.put("/:id", requireAuth, requireRole("Admin"), async (req, res) => {
+  try {
+    const doc = await updateLeaveRequest(req.params.id, req.body);
+    if (!doc) return res.status(404).json({ error: "Not found" });
+    return res.json(doc);
   } catch (err: any) {
     return res.status(500).json({ error: err.message || err });
   }

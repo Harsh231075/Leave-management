@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Plus } from "lucide-react";
+import { Plus, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import FormInput from "@/components/ui/FormInput";
 import FormSelect from "@/components/ui/FormSelect";
@@ -12,6 +12,8 @@ import {
   DialogDescription,
   DialogFooter,
 } from "@/components/ui/dialog";
+import { useEmployeeStore } from "@/store/useEmployeeStore";
+import { useToast } from "@/hooks/use-toast";
 
 const departmentOptions = [
   { value: "Engineering", label: "Engineering" },
@@ -23,22 +25,54 @@ const departmentOptions = [
 
 const AddEmployeeModal = () => {
   const [open, setOpen] = useState(false);
+  const { addEmployee, isLoading } = useEmployeeStore();
+  const { toast } = useToast();
+
   const [form, setForm] = useState({
     name: "",
     email: "",
     department: "",
-    role: "",
+    role: "Employee",
+    dateOfJoining: "",
+    leaveBalance: 12, // Default
   });
 
-  const handleChange = (key: string, value: string) => {
-    setForm((s) => ({ ...s, [key]: value }));
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    setForm((s) => ({ ...s, [name]: value }));
   };
 
-  const handleSubmit = (e?: React.FormEvent) => {
-    e?.preventDefault();
-    // TODO: wire up to backend or state management
-    console.log("Add employee:", form);
-    setOpen(false);
+  const handleSelectChange = (name: string, value: string) => {
+    setForm((s) => ({ ...s, [name]: value }));
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    try {
+      await addEmployee({
+        ...form,
+        leaveBalance: Number(form.leaveBalance)
+      });
+      toast({
+        title: "Success",
+        description: "Employee added successfully",
+      });
+      setOpen(false);
+      setForm({
+        name: "",
+        email: "",
+        department: "",
+        role: "Employee",
+        dateOfJoining: "",
+        leaveBalance: 12,
+      });
+    } catch (error: any) {
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: error.response?.data?.error || "Failed to add employee",
+      });
+    }
   };
 
   return (
@@ -62,17 +96,19 @@ const AddEmployeeModal = () => {
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <FormInput
               label="Full Name"
+              name="name"
               required
               value={form.name}
-              id="emp-name"
+              onChange={handleChange}
               placeholder="Jane Doe"
             />
             <FormInput
               label="Email"
+              name="email"
               type="email"
               required
               value={form.email}
-              id="emp-email"
+              onChange={handleChange}
               placeholder="jane@company.com"
             />
             <div>
@@ -80,16 +116,31 @@ const AddEmployeeModal = () => {
                 label="Department"
                 options={departmentOptions}
                 required
-                id="emp-dept"
                 value={form.department}
-                onChange={(v) => handleChange("department", v)}
+                onChange={(v) => handleSelectChange("department", v)}
               />
             </div>
             <FormInput
               label="Role"
+              name="role"
               required
-              id="emp-role"
+              value={form.role}
+              onChange={handleChange}
               placeholder="Software Engineer"
+            />
+            <FormInput
+              label="Join Date"
+              name="dateOfJoining"
+              type="date"
+              value={form.dateOfJoining}
+              onChange={handleChange}
+            />
+            <FormInput
+              label="Leave Balance"
+              name="leaveBalance"
+              type="number"
+              value={String(form.leaveBalance)}
+              onChange={handleChange}
             />
           </div>
 
@@ -98,7 +149,10 @@ const AddEmployeeModal = () => {
               <Button variant="outline" onClick={() => setOpen(false)} type="button">
                 Cancel
               </Button>
-              <Button type="submit">Create</Button>
+              <Button type="submit" disabled={isLoading}>
+                {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                Create
+              </Button>
             </div>
           </DialogFooter>
         </form>
@@ -108,3 +162,4 @@ const AddEmployeeModal = () => {
 };
 
 export default AddEmployeeModal;
+

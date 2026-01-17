@@ -1,32 +1,47 @@
 import { Link } from "react-router-dom";
-import { useState } from "react";
-import { ArrowLeft, Search, Filter } from "lucide-react";
+import { useState, useEffect } from "react";
+import { ArrowLeft, Search, Filter, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import AddEmployeeModal from "@/components/admin/AddEmployeeModal";
 import DataTable from "@/components/ui/DataTable";
 import CardContainer from "@/components/ui/CardContainer";
 import FormSelect from "@/components/ui/FormSelect";
-import { employees } from "@/data/dummyData";
 import EmployeeActions from "@/components/admin/EmployeeActions";
+import { useEmployeeStore } from "@/store/useEmployeeStore";
+import { User } from "@/types";
+import { format, parseISO } from "date-fns";
 
 const EmployeeManagement = () => {
+  const { employees, fetchEmployees, isLoading } = useEmployeeStore();
+
+  useEffect(() => {
+    fetchEmployees();
+  }, [fetchEmployees]);
+
   const departmentOptions = [
     { value: "all", label: "All Departments" },
-    { value: "engineering", label: "Engineering" },
-    { value: "marketing", label: "Marketing" },
-    { value: "sales", label: "Sales" },
-    { value: "hr", label: "Human Resources" },
-    { value: "design", label: "Design" },
+    { value: "Engineering", label: "Engineering" },
+    { value: "Marketing", label: "Marketing" },
+    { value: "Sales", label: "Sales" },
+    { value: "HR", label: "Human Resources" },
+    { value: "Design", label: "Design" },
   ];
 
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedDept, setSelectedDept] = useState("all");
 
+  const filteredEmployees = employees.filter((e) => {
+    const matchesDept = selectedDept === "all" || e.department?.toLowerCase() === selectedDept.toLowerCase();
+    const q = searchTerm.trim().toLowerCase();
+    const matchesSearch = !q || e.name.toLowerCase().includes(q) || e.email.toLowerCase().includes(q);
+    return matchesDept && matchesSearch;
+  });
+
   const columns = [
     {
       key: "name",
       header: "Employee",
-      render: (item: typeof employees[0]) => (
+      render: (item: User) => (
         <div className="flex items-center gap-3">
           <div className="h-9 w-9 rounded-full bg-primary/10 flex items-center justify-center">
             <span className="text-sm font-medium text-primary">
@@ -42,18 +57,22 @@ const EmployeeManagement = () => {
     },
     { key: "department", header: "Department" },
     { key: "role", header: "Role" },
-    { key: "dateOfJoining", header: "Joined" },
+    {
+      key: "dateOfJoining",
+      header: "Joined",
+      render: (item: User) => item.dateOfJoining ? format(parseISO(item.dateOfJoining), 'MMM dd, yyyy') : '-'
+    },
     {
       key: "leaveBalance",
       header: "Leave Balance",
-      render: (item: typeof employees[0]) => (
-        <span className="font-medium text-primary">{item.leaveBalance} days</span>
+      render: (item: User) => (
+        <span className="font-medium text-primary">{item.leaveBalance || 0} days</span>
       )
     },
     {
       key: "actions",
       header: "",
-      render: (item: typeof employees[0]) => (
+      render: (item: User) => (
         <div className="flex items-center">
           <EmployeeActions employee={item} />
         </div>
@@ -101,7 +120,7 @@ const EmployeeManagement = () => {
         <div className="p-4 rounded-xl bg-card border border-border">
           <p className="text-sm text-muted-foreground">Other</p>
           <p className="text-2xl font-bold text-foreground mt-1">
-            {employees.filter(e => !["Engineering", "Marketing"].includes(e.department)).length}
+            {employees.filter(e => !["Engineering", "Marketing"].includes(e.department || "")).length}
           </p>
         </div>
       </div>
@@ -135,18 +154,20 @@ const EmployeeManagement = () => {
 
       {/* Table */}
       <CardContainer>
-        <DataTable
-          columns={columns}
-          data={employees.filter((e) => {
-            const matchesDept = selectedDept === "all" || e.department.toLowerCase() === selectedDept.toLowerCase();
-            const q = searchTerm.trim().toLowerCase();
-            const matchesSearch = !q || e.name.toLowerCase().includes(q) || e.email.toLowerCase().includes(q);
-            return matchesDept && matchesSearch;
-          })}
-        />
+        {isLoading ? (
+          <div className="flex justify-center p-8">
+            <Loader2 className="h-8 w-8 animate-spin text-primary" />
+          </div>
+        ) : (
+          <DataTable
+            columns={columns}
+            data={filteredEmployees}
+          />
+        )}
       </CardContainer>
     </div>
   );
 };
 
 export default EmployeeManagement;
+

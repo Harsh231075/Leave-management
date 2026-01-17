@@ -1,43 +1,87 @@
-import { Users, Clock, CalendarCheck, TrendingUp } from "lucide-react";
+import { useEffect } from "react";
+import { Users, Clock, CalendarCheck, TrendingUp, Loader2 } from "lucide-react";
 import { Link } from "react-router-dom";
 import StatCard from "@/components/ui/StatCard";
 import DataTable from "@/components/ui/DataTable";
 import CardContainer from "@/components/ui/CardContainer";
 import StatusBadge from "@/components/ui/StatusBadge";
 import { Button } from "@/components/ui/button";
-import { dashboardStats, leaveRequests, attendanceRecords, employees } from "@/data/dummyData";
+import { useEmployeeStore } from "@/store/useEmployeeStore";
+import { useLeaveStore } from "@/store/useLeaveStore";
+import { useAttendanceStore } from "@/store/useAttendanceStore";
+import { format, parseISO } from "date-fns";
+import { LeaveRequest, Attendance } from "@/types";
+import { useToast } from "@/hooks/use-toast";
 
 const AdminDashboard = () => {
-  const pendingLeaves = leaveRequests.filter(r => r.status === "Pending");
-  const todayAttendance = attendanceRecords.filter(r => r.date === "2024-01-15");
+  const { employees, fetchEmployees, isLoading: employeesLoading } = useEmployeeStore();
+  const { leaves, fetchAllLeaves, updateLeaveStatus, isLoading: leavesLoading } = useLeaveStore();
+  const { attendanceRecords, fetchAllAttendance, isLoading: attendanceLoading } = useAttendanceStore();
+  const { toast } = useToast();
+
+  useEffect(() => {
+    fetchEmployees();
+    fetchAllLeaves();
+    fetchAllAttendance();
+  }, [fetchEmployees, fetchAllLeaves, fetchAllAttendance]);
+
+  const pendingLeaves = leaves.filter(r => r.status === "Pending");
+  const today = format(new Date(), "yyyy-MM-dd");
+  const todayAttendance = attendanceRecords.filter(r => format(parseISO(r.date), "yyyy-MM-dd") === today);
+  const presentToday = todayAttendance.filter(r => r.status === "Present").length;
+
+  const handleStatusUpdate = async (id: string, status: string) => {
+    try {
+      await updateLeaveStatus(id, status);
+      toast({
+        title: "Success",
+        description: `Leave request ${status.toLowerCase()}`,
+      });
+    } catch (error) {
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "Failed to update status",
+      });
+    }
+  };
 
   const leaveColumns = [
     { key: "employeeName", header: "Employee" },
     { key: "leaveType", header: "Type" },
-    { 
-      key: "dateRange", 
+    {
+      key: "dateRange",
       header: "Date Range",
-      render: (item: typeof pendingLeaves[0]) => (
-        <span className="text-sm">{item.startDate} — {item.endDate}</span>
+      render: (item: LeaveRequest) => (
+        <span className="text-sm">{format(parseISO(item.startDate as string), 'MMM dd')} — {format(parseISO(item.endDate as string), 'MMM dd')}</span>
       )
     },
     { key: "totalDays", header: "Days" },
-    { 
-      key: "status", 
+    {
+      key: "status",
       header: "Status",
-      render: (item: typeof pendingLeaves[0]) => (
+      render: (item: LeaveRequest) => (
         <StatusBadge status={item.status as "Approved" | "Pending" | "Rejected"} />
       )
     },
     {
       key: "actions",
       header: "Actions",
-      render: () => (
+      render: (item: LeaveRequest) => (
         <div className="flex gap-2">
-          <Button size="sm" className="h-7 text-xs bg-success hover:bg-success/90 text-success-foreground">
+          <Button
+            size="sm"
+            className="h-7 text-xs bg-success hover:bg-success/90 text-success-foreground"
+            onClick={() => handleStatusUpdate(item._id, "Approved")}
+          >
             Approve
           </Button>
-          <Button size="sm" variant="outline" className="h-7 text-xs border-destructive text-destructive hover:bg-destructive/10">
+          <Button
+            size="sm"
+            variant="outline"
+            className="h-7 text-xs border-destructive text-destructive hover:bg-destructive/10"
+            onClick={() => handleStatusUpdate(item._id, "Rejected")}
+          >
             Reject
           </Button>
         </div>
@@ -47,15 +91,39 @@ const AdminDashboard = () => {
 
   const attendanceColumns = [
     { key: "employeeName", header: "Employee" },
-    { key: "date", header: "Date" },
-    { 
-      key: "status", 
+    {
+      key: "date",
+      header: "Date",
+      render: (item: Attendance) => <span>{format(parseISO(item.date), 'MMM dd')}</span>
+    },
+    {
+      key: "status",
       header: "Status",
-      render: (item: typeof todayAttendance[0]) => (
+      render: (item: Attendance) => (
         <StatusBadge status={item.status as "Present" | "Absent"} />
       )
     },
   ];
+
+  const isLoading = employeesLoading || leavesLoading || attendanceLoading;
+
+  if (isLoading && employees.length === 0) {
+    return (
+      <div className="flex h-[80vh] items-center justify-center">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      </div>
+    );
+  }
+
+  const attendanceRate = employees.length ? Math.round((presentToday / employees.length) * 100) : 0;
+  // Approximation of people on leave today
+  const onLeaveToday = leaves.filter(l => {
+    if (l.status !== 'Approved') return false;
+    const start = parseISO(l.startDate as string);
+    const end = parseISO(l.endDate as string);
+    const now = new Date();
+    return now >= start && now <= end;
+  }).length;
 
   return (
     <div className="page-container animate-fade-up">
@@ -69,27 +137,27 @@ const AdminDashboard = () => {
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
         <StatCard
           title="Total Employees"
-          value={dashboardStats.admin.totalEmployees}
+          value={employees.length}
           icon={Users}
           description="Active employees"
         />
         <StatCard
           title="Pending Requests"
-          value={dashboardStats.admin.pendingLeaveRequests}
+          value={pendingLeaves.length}
           icon={Clock}
           description="Awaiting your approval"
         />
         <StatCard
           title="Today's Attendance"
-          value={`${dashboardStats.admin.todayAttendance}/${employees.length}`}
+          value={`${presentToday}/${employees.length}`}
           icon={CalendarCheck}
           description="Employees present today"
         />
       </div>
 
       {/* Recent Leave Requests */}
-      <CardContainer 
-        title="Pending Leave Requests" 
+      <CardContainer
+        title="Pending Leave Requests"
         description="Review and manage leave applications"
         className="mb-8"
         headerAction={
@@ -103,8 +171,8 @@ const AdminDashboard = () => {
 
       {/* Attendance Summary */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <CardContainer 
-          title="Today's Attendance" 
+        <CardContainer
+          title="Today's Attendance"
           description="Employee attendance for today"
           headerAction={
             <Link to="/admin/attendance">
@@ -124,7 +192,7 @@ const AdminDashboard = () => {
                 <span className="text-sm font-medium text-foreground">Attendance Rate</span>
               </div>
               <span className="text-lg font-bold text-success">
-                {Math.round((dashboardStats.admin.todayAttendance / employees.length) * 100)}%
+                {attendanceRate}%
               </span>
             </div>
             <div className="flex items-center justify-between p-4 rounded-lg bg-warning/10 border border-warning/20">
@@ -139,7 +207,7 @@ const AdminDashboard = () => {
                 <Users className="h-5 w-5 text-primary" />
                 <span className="text-sm font-medium text-foreground">On Leave Today</span>
               </div>
-              <span className="text-lg font-bold text-primary">2</span>
+              <span className="text-lg font-bold text-primary">{onLeaveToday}</span>
             </div>
           </div>
         </CardContainer>
@@ -149,3 +217,4 @@ const AdminDashboard = () => {
 };
 
 export default AdminDashboard;
+

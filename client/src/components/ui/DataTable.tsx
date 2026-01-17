@@ -13,10 +13,10 @@ interface DataTableProps<T> {
   className?: string;
 }
 
-function DataTable<T extends Record<string, unknown>>({ 
-  columns, 
-  data, 
-  className 
+function DataTable<T>({
+  columns,
+  data,
+  className
 }: DataTableProps<T>) {
   return (
     <div className={cn("overflow-x-auto rounded-xl border border-border bg-card", className)}>
@@ -35,8 +35,8 @@ function DataTable<T extends Record<string, unknown>>({
             <tr key={index}>
               {columns.map((column) => (
                 <td key={String(column.key)} className={column.className}>
-                  {column.render 
-                    ? column.render(item) 
+                  {column.render
+                    ? column.render(item)
                     : String(item[column.key as keyof T] ?? "")}
                 </td>
               ))}

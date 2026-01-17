@@ -21,3 +21,8 @@ export async function listLeaveRequests(employeeId?: string) {
   if (employeeId) return await LeaveRequestModel.find({ employeeId }).lean();
   return await LeaveRequestModel.find().lean();
 }
+
+export async function updateLeaveRequest(id: string, updates: Partial<LeaveRequestCreateInput>) {
+  const doc = await LeaveRequestModel.findByIdAndUpdate(id, updates, { new: true }).lean();
+  return doc;
+}

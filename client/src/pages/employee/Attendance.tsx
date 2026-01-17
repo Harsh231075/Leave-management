@@ -1,28 +1,71 @@
+import { useEffect } from "react";
 import { Link } from "react-router-dom";
-import { ArrowLeft, CheckCircle, XCircle, Clock } from "lucide-react";
+import { ArrowLeft, CheckCircle, XCircle, Clock, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import DataTable from "@/components/ui/DataTable";
 import StatusBadge from "@/components/ui/StatusBadge";
 import CardContainer from "@/components/ui/CardContainer";
-import { attendanceRecords } from "@/data/dummyData";
+import { useAttendanceStore } from "@/store/useAttendanceStore";
+import { useAuthStore } from "@/store/useAuthStore";
+import { useToast } from "@/hooks/use-toast";
+import { format, parseISO } from "date-fns";
+import { Attendance as AttendanceType } from "@/types";
 
 const Attendance = () => {
-  const employeeAttendance = attendanceRecords.filter(r => r.employeeId === 1);
-  const today = "2024-01-16";
+  const { myAttendance, fetchMyAttendance, markAttendance, isLoading } = useAttendanceStore();
+  const { user } = useAuthStore();
+  const { toast } = useToast();
+
+  const today = format(new Date(), "yyyy-MM-dd");
+  const displayDate = format(new Date(), "MMM dd, yyyy");
+
+  useEffect(() => {
+    fetchMyAttendance();
+  }, [fetchMyAttendance]);
+
+  const handleMarkAttendance = async (status: string) => {
+    if (!user) return;
+    try {
+      await markAttendance({
+        employeeId: user._id,
+        employeeName: user.name,
+        date: new Date(),
+        status,
+      });
+      toast({
+        title: "Attendance Marked",
+        description: `You have been marked as ${status}.`,
+      });
+    } catch (error: any) {
+      toast({
+        variant: "destructive",
+        title: "Failed",
+        description: error.response?.data?.error || "Could not mark attendance",
+      });
+    }
+  };
 
   const columns = [
-    { key: "date", header: "Date" },
+    {
+      key: "date",
+      header: "Date",
+      render: (item: AttendanceType) => (
+        <span>{format(parseISO(item.date), 'MMM dd, yyyy')}</span>
+      )
+    },
     {
       key: "status",
       header: "Status",
-      render: (item: typeof employeeAttendance[0]) => (
+      render: (item: AttendanceType) => (
         <StatusBadge status={item.status as "Present" | "Absent"} />
       )
     },
   ];
 
-  const presentDays = employeeAttendance.filter(a => a.status === "Present").length;
-  const absentDays = employeeAttendance.filter(a => a.status === "Absent").length;
+  const presentDays = myAttendance.filter(a => a.status === "Present").length;
+  const absentDays = myAttendance.filter(a => a.status === "Absent").length;
+
+  const isTodayMarked = myAttendance.some(a => format(parseISO(a.date), "yyyy-MM-dd") === today);
 
   return (
     <div className="page-container animate-fade-up">
@@ -43,7 +86,7 @@ const Attendance = () => {
       {/* Mark Attendance Card */}
       <CardContainer
         title="Mark Today's Attendance"
-        description={`Date: ${today}`}
+        description={`Date: ${displayDate}`}
         className="mb-8 w-full"
       >
         <div className="flex flex-col sm:flex-row items-center justify-between gap-6">
@@ -53,23 +96,29 @@ const Attendance = () => {
             </div>
             <div>
               <p className="text-lg font-semibold text-foreground">Today</p>
-              <p className="text-sm text-muted-foreground">Mark your attendance for today</p>
+              <p className="text-sm text-muted-foreground">
+                {isTodayMarked ? "Attendance already marked" : "Mark your attendance for today"}
+              </p>
             </div>
           </div>
           <div className="flex gap-3">
             <Button
               size="lg"
               className="bg-success hover:bg-success/90 text-success-foreground"
+              onClick={() => handleMarkAttendance("Present")}
+              disabled={isLoading || isTodayMarked}
             >
-              <CheckCircle className="h-5 w-5 mr-2" />
+              {isLoading ? <Loader2 className="h-5 w-5 mr-2 animate-spin" /> : <CheckCircle className="h-5 w-5 mr-2" />}
               Present
             </Button>
             <Button
               size="lg"
               variant="outline"
               className="border-destructive text-destructive hover:bg-destructive/10"
+              onClick={() => handleMarkAttendance("Absent")}
+              disabled={isLoading || isTodayMarked}
             >
-              <XCircle className="h-5 w-5 mr-2" />
+              {isLoading ? <Loader2 className="h-5 w-5 mr-2 animate-spin" /> : <XCircle className="h-5 w-5 mr-2" />}
               Absent
             </Button>
           </div>
@@ -104,10 +153,17 @@ const Attendance = () => {
         description="Your attendance records"
         className="w-full"
       >
-        <DataTable columns={columns} data={employeeAttendance} />
+        {isLoading && myAttendance.length === 0 ? (
+          <div className="flex justify-center p-8">
+            <Loader2 className="h-8 w-8 animate-spin text-primary" />
+          </div>
+        ) : (
+          <DataTable columns={columns} data={myAttendance} />
+        )}
       </CardContainer>
     </div>
   );
 };
 
 export default Attendance;
+

@@ -1,24 +1,50 @@
 import { Link } from "react-router-dom";
-import { useState } from "react";
-import { ArrowLeft, Filter, Download } from "lucide-react";
+import { useState, useEffect } from "react";
+import { ArrowLeft, Filter, Download, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import DataTable from "@/components/ui/DataTable";
 import StatusBadge from "@/components/ui/StatusBadge";
 import CardContainer from "@/components/ui/CardContainer";
 import FormSelect from "@/components/ui/FormSelect";
-import { leaveRequests } from "@/data/dummyData";
+import { useLeaveStore } from "@/store/useLeaveStore";
+import { format, parseISO } from "date-fns";
+import { LeaveRequest } from "@/types";
+import { useToast } from "@/hooks/use-toast";
 
 const LeaveRequests = () => {
+  const { leaves, fetchAllLeaves, updateLeaveStatus, isLoading } = useLeaveStore();
+  const { toast } = useToast();
+
+  useEffect(() => {
+    fetchAllLeaves();
+  }, [fetchAllLeaves]);
+
   const statusOptions = [
     { value: "all", label: "All Status" },
-    { value: "pending", label: "Pending" },
-    { value: "approved", label: "Approved" },
-    { value: "rejected", label: "Rejected" },
+    { value: "Pending", label: "Pending" },
+    { value: "Approved", label: "Approved" },
+    { value: "Rejected", label: "Rejected" },
   ];
 
   const [selectedStatus, setSelectedStatus] = useState("all");
 
-  const filtered = leaveRequests.filter(l => selectedStatus === "all" ? true : l.status.toLowerCase() === selectedStatus.toLowerCase());
+  const filtered = leaves.filter(l => selectedStatus === "all" ? true : l.status.toLowerCase() === selectedStatus.toLowerCase());
+
+  const handleStatusUpdate = async (id: string, status: string) => {
+    try {
+      await updateLeaveStatus(id, status);
+      toast({
+        title: "Success",
+        description: `Leave request ${status.toLowerCase()}`,
+      });
+    } catch (error) {
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "Failed to update status",
+      });
+    }
+  };
 
   const columns = [
     { key: "employeeName", header: "Employee Name" },
@@ -26,15 +52,15 @@ const LeaveRequests = () => {
     {
       key: "dateRange",
       header: "Date Range",
-      render: (item: typeof leaveRequests[0]) => (
-        <span>{item.startDate} — {item.endDate}</span>
+      render: (item: LeaveRequest) => (
+        <span>{format(parseISO(item.startDate as string), 'MMM dd')} — {format(parseISO(item.endDate as string), 'MMM dd, yyyy')}</span>
       )
     },
     { key: "totalDays", header: "Total Days" },
     {
       key: "reason",
       header: "Reason",
-      render: (item: typeof leaveRequests[0]) => (
+      render: (item: LeaveRequest) => (
         <span className="max-w-[200px] truncate block" title={item.reason}>
           {item.reason}
         </span>
@@ -43,20 +69,29 @@ const LeaveRequests = () => {
     {
       key: "status",
       header: "Status",
-      render: (item: typeof leaveRequests[0]) => (
+      render: (item: LeaveRequest) => (
         <StatusBadge status={item.status as "Approved" | "Pending" | "Rejected"} />
       )
     },
     {
       key: "actions",
       header: "Actions",
-      render: (item: typeof leaveRequests[0]) => (
+      render: (item: LeaveRequest) => (
         item.status === "Pending" ? (
           <div className="flex gap-2">
-            <Button size="sm" className="h-7 text-xs bg-success hover:bg-success/90 text-success-foreground">
+            <Button
+              size="sm"
+              className="h-7 text-xs bg-success hover:bg-success/90 text-success-foreground"
+              onClick={() => handleStatusUpdate(item._id, "Approved")}
+            >
               Approve
             </Button>
-            <Button size="sm" variant="outline" className="h-7 text-xs border-destructive text-destructive hover:bg-destructive/10">
+            <Button
+              size="sm"
+              variant="outline"
+              className="h-7 text-xs border-destructive text-destructive hover:bg-destructive/10"
+              onClick={() => handleStatusUpdate(item._id, "Rejected")}
+            >
               Reject
             </Button>
           </div>
@@ -128,10 +163,17 @@ const LeaveRequests = () => {
 
       {/* Table */}
       <CardContainer>
-        <DataTable columns={columns} data={filtered} />
+        {isLoading ? (
+          <div className="flex justify-center p-8">
+            <Loader2 className="h-8 w-8 animate-spin text-primary" />
+          </div>
+        ) : (
+          <DataTable columns={columns} data={filtered} />
+        )}
       </CardContainer>
     </div>
   );
 };
 
 export default LeaveRequests;
+

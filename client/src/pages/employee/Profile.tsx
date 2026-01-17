@@ -1,16 +1,42 @@
 import { Link } from "react-router-dom";
 import { ArrowLeft, Mail, Briefcase, Calendar, Award, Building } from "lucide-react";
 import CardContainer from "@/components/ui/CardContainer";
-import { currentEmployee } from "@/data/dummyData";
+import { useAuthStore } from "@/store/useAuthStore";
+import { useLeaveStore } from "@/store/useLeaveStore";
+import { format, parseISO } from "date-fns";
+import { useEffect } from "react";
 
 const Profile = () => {
+  const { user } = useAuthStore();
+  const { myLeaves, fetchMyLeaves } = useLeaveStore();
+
+  useEffect(() => {
+    fetchMyLeaves();
+  }, [fetchMyLeaves]);
+
+  const leavesUsed = myLeaves
+    .filter(l => l.status === "Approved")
+    .reduce((acc, curr) => acc + curr.totalDays, 0);
+
+  const totalLeaves = 18; // Assuming 18 leaves per year ? Or from user model if available. Using static or user.leaveBalance + used?
+  // Let's assume user.leaveBalance is remaining.
+  const remaining = user?.leaveBalance || 0;
+  const totalYear = remaining + leavesUsed;
+
+  // Format joining date if exists
+  const joiningDate = user?.dateOfJoining
+    ? format(parseISO(user.dateOfJoining), "MMM dd, yyyy")
+    : "Not available";
+
   const profileFields = [
-    { icon: Mail, label: "Email Address", value: currentEmployee.email },
-    { icon: Briefcase, label: "Role", value: currentEmployee.role },
-    { icon: Building, label: "Department", value: currentEmployee.department },
-    { icon: Calendar, label: "Date of Joining", value: currentEmployee.dateOfJoining },
-    { icon: Award, label: "Leave Balance", value: `${currentEmployee.leaveBalance} days` },
+    { icon: Mail, label: "Email Address", value: user?.email },
+    { icon: Briefcase, label: "Role", value: user?.role },
+    { icon: Building, label: "Department", value: user?.department || "N/A" },
+    { icon: Calendar, label: "Date of Joining", value: joiningDate },
+    { icon: Award, label: "Leave Balance", value: `${remaining} days` },
   ];
+
+  if (!user) return null;
 
   return (
     <div className="page-container animate-fade-up">
@@ -34,12 +60,12 @@ const Profile = () => {
           <div className="flex flex-col sm:flex-row items-center gap-6 pb-6 border-b border-border">
             <div className="h-24 w-24 rounded-2xl gradient-primary flex items-center justify-center">
               <span className="text-3xl font-bold text-primary-foreground">
-                {currentEmployee.name.split(' ').map(n => n[0]).join('')}
+                {user.name.split(' ').map(n => n[0]).join('')}
               </span>
             </div>
             <div className="text-center sm:text-left">
-              <h3 className="text-2xl font-bold text-foreground">{currentEmployee.name}</h3>
-              <p className="text-muted-foreground mt-1">{currentEmployee.department} • {currentEmployee.role}</p>
+              <h3 className="text-2xl font-bold text-foreground">{user.name}</h3>
+              <p className="text-muted-foreground mt-1">{user.department} • {user.role}</p>
               <div className="mt-3">
                 <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-success/10 text-success border border-success/20">
                   Active Employee
@@ -71,15 +97,15 @@ const Profile = () => {
             <h4 className="text-sm font-semibold text-foreground mb-3">Leave Summary</h4>
             <div className="grid grid-cols-3 gap-4 text-center">
               <div>
-                <p className="text-2xl font-bold text-primary">12</p>
+                <p className="text-2xl font-bold text-primary">{remaining}</p>
                 <p className="text-xs text-muted-foreground">Remaining</p>
               </div>
               <div>
-                <p className="text-2xl font-bold text-success">5</p>
+                <p className="text-2xl font-bold text-success">{leavesUsed}</p>
                 <p className="text-xs text-muted-foreground">Used</p>
               </div>
               <div>
-                <p className="text-2xl font-bold text-muted-foreground">17</p>
+                <p className="text-2xl font-bold text-muted-foreground">{totalYear}</p>
                 <p className="text-xs text-muted-foreground">Total/Year</p>
               </div>
             </div>
@@ -91,3 +117,4 @@ const Profile = () => {
 };
 
 export default Profile;
+
